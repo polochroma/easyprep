@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mole Delivery Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+    --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+    --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+    --pass:#6FD3A0; --fail:#FF8A9B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+  button{font-family:inherit;color:var(--text)}
+  .app{display:flex;flex-direction:column;min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px}
+  header h1 span{color:var(--skyD)}
+  header h1 .m{display:inline-block;width:26px;height:26px;border-radius:50%;background:var(--peach);vertical-align:-5px;margin-right:6px;position:relative}
+  header h1 .m:before,header h1 .m:after{content:"";position:absolute;top:10px;width:4px;height:4px;border-radius:50%;background:#4A3F5C}
+  header h1 .m:before{left:7px}header h1 .m:after{right:7px}
+  .badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;background:var(--sky);color:#fff}
+  .badge.adv{background:var(--lavD)}
+  .progress{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted)}
+  .dots{display:flex;gap:5px}
+  .dot{width:13px;height:13px;border-radius:50%;background:#EADFCE}
+  .dot.done{background:var(--pass)}
+  .dot.fail{background:var(--fail)}
+  .dot.cur{box-shadow:0 0 0 3px var(--sky)}
+  .btn3{border:0;border-radius:14px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.14);transition:transform .06s,box-shadow .06s}
+  .btn3:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.14)}
+  .finishbtn{display:none;background:var(--mint)}
+
+  main{display:grid;grid-template-columns:262px minmax(0,1fr) 300px;gap:14px;padding:14px;flex:1}
+  /* Under 1280px (every Google Sites page): balance is the full-width hero, shelf + ticket side by side below */
+  @media(max-width:1279px){
+    main{grid-template-columns:1fr 1fr}
+    .bench{grid-column:1/-1;order:-1}
+    .canvaswrap{display:flex;justify-content:center;background:linear-gradient(#EAF4FF,#DDEEFF)}
+    canvas{width:100%;max-width:1100px;height:auto}
+    .shelf{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}
+  }
+  @media(max-width:640px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+  .card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+
+  .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
+  .jar{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:6px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+  .jar:hover{transform:translateY(-3px) rotate(-1.5deg)}
+  .jar.active{border-color:var(--sky);background:#EEF5FF}
+  .jar.done{opacity:.6}
+  .jar svg{width:100%;height:auto;display:block}
+  .jar .nm{font-size:12px;font-weight:700;margin-top:2px;line-height:1.1}
+  .jar .fm{font-size:10px;color:var(--muted);font-weight:600}
+  .jar .chk{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--pass);color:#fff;font-size:13px;font-weight:900;display:none;align-items:center;justify-content:center;border:3px solid #fff}
+  .jar.done .chk{display:flex}
+  .jar.failed .chk{display:flex;background:var(--fail)}
+
+  .bench{display:flex;flex-direction:column;gap:12px}
+  .canvaswrap{position:relative;background:linear-gradient(#EAF4FF,#DDEEFF);border-radius:18px;border:3px solid #D8E8FA;overflow:hidden}
+  canvas{display:block;width:100%;height:auto}
+  .controls{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .ctl{border:0;border-radius:16px;padding:12px 6px;font-weight:700;font-size:14px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 6px 0 var(--sh);transition:transform .06s,box-shadow .06s,filter .1s}
+  .ctl:active,.ctl.held{transform:translateY(5px);box-shadow:0 1px 0 var(--sh)}
+  .ctl:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 6px 0 var(--sh)}
+  .ctl.tare{background:var(--lav);--sh:var(--lavD)}
+  .ctl.pour{background:var(--sky);--sh:var(--skyD);color:#fff}
+  .ctl.fine{background:var(--mint);--sh:var(--mintD)}
+  .ctl.remove{background:var(--peach);--sh:var(--peachD)}
+  .ctl.verify{background:var(--lemon);--sh:var(--lemonD)}
+  .ctl small{display:block;font-weight:600;font-size:10px;opacity:.75;margin-top:2px}
+  .hintline{font-size:13px;font-weight:600;color:var(--muted);text-align:center;min-height:18px}
+  .orderbar{display:grid;grid-template-columns:1fr auto 1.1fr;align-items:center;gap:10px;background:#FFF4B8;border:3px solid #F0DC8A;border-radius:16px;padding:10px 14px;margin-bottom:10px;transition:all .15s}
+  .orderbar .ob-l{display:block;font-size:10px;letter-spacing:2px;font-weight:800;color:#9A8FB0}
+  .orderbar .ob-order b{font-size:20px;font-weight:800;line-height:1.1;display:block}
+  .orderbar .ob-order small{font-size:12px;font-weight:700;color:#6B5F80}
+  .orderbar .ob-arrow{font-size:26px;font-weight:900;color:#9A8FB0}
+  .orderbar .ob-target label{display:block;font-size:11px;font-weight:800;color:#6B5F80;margin-bottom:4px}
+  .orderbar input{width:100%;padding:9px 12px;border-radius:12px;border:3px solid var(--line);background:#fff;color:var(--text);font-size:20px;font-weight:800;outline:none;font-family:inherit}
+  .orderbar input:focus{border-color:var(--sky)}
+  .orderbar input:disabled{background:#F3EEF9;color:#9A8FB0}
+  .orderbar.need{border-color:var(--sky);background:#EEF5FF}
+  .orderbar.need .ob-arrow{color:var(--skyD);animation:bob 1s ease-in-out infinite}
+  .orderbar.need input{border-color:var(--sky);animation:pulse 1.2s ease-in-out infinite}
+  .orderbar.need .ob-target label{color:var(--skyD)}
+  .orderbar.shake input{animation:shake .4s;border-color:var(--fail)}
+  .orderbar.empty{opacity:.55}
+  @keyframes bob{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+  .calc-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(234,244,255,.55);backdrop-filter:blur(1.5px)}
+  .calc-overlay.on{display:flex}
+  .calc-card{background:#fff;border:4px solid var(--sky);border-radius:22px;padding:18px 22px;max-width:380px;text-align:center;box-shadow:0 8px 0 var(--sky)}
+  .calc-card .big{font-size:20px;font-weight:800;color:var(--text)}
+  .calc-card .big span{display:inline-block;background:var(--sky);color:#fff;border-radius:50%;width:28px;height:28px;line-height:28px;margin-right:8px}
+  .calc-card p{margin:8px 0 0;font-size:14px;font-weight:600;color:#6B5F80}
+  .calc-card .dn{font-size:28px;color:var(--skyD);margin-top:4px;animation:bob2 1s ease-in-out infinite}
+  @keyframes bob2{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+  .step{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:12px;background:#FFF9F1;border:2px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);transition:all .15s}
+  .step .n{width:20px;height:20px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+  .step.cur{background:#EEF5FF;border-color:var(--sky);color:var(--text);box-shadow:0 3px 0 var(--sky)}
+  .step.cur .n{background:var(--sky)}
+  .step.done{background:#E6F8EF;border-color:var(--pass);color:#3BAF7A}
+  .step.done .n{background:var(--pass)}
+  .field.need{position:relative}
+  .field.need input{border-color:var(--sky);animation:pulse 1.2s ease-in-out infinite}
+  .field.need label{color:var(--skyD)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(143,184,255,.55)}50%{box-shadow:0 0 0 7px rgba(143,184,255,0)}}
+  .field.shake input{animation:shake .4s;border-color:var(--fail)}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+  .ctl.nudge{animation:nudge .5s}
+  @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+  .ticket{background:#FFF4B8;color:#4A3F5C;border-radius:6px;padding:14px 14px 12px;position:relative;transform:rotate(-1.2deg);box-shadow:0 8px 16px rgba(74,63,92,.15);font-family:Nunito,Fredoka,sans-serif}
+  .ticket:before{content:"";position:absolute;left:50%;top:-10px;width:70px;height:20px;margin-left:-35px;background:rgba(255,183,213,.65);border-radius:3px;transform:rotate(1.5deg)}
+  .ticket .t1{font-size:10px;letter-spacing:2px;color:#9A8FB0;font-weight:800}
+  .ticket .t2{font-size:22px;font-weight:800;margin:6px 0 2px;line-height:1.15;word-wrap:break-word}
+  .ticket .t3{font-size:13px;font-weight:700;color:#6B5F80}
+  .ticket .t4{font-size:11px;color:#9A8FB0;margin-top:8px;border-top:2px dashed #F0DC8A;padding-top:6px;font-weight:700}
+  .ticket .empty{font-size:13px;color:#9A8FB0;padding:8px 0;font-weight:700}
+  .field{margin-top:16px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;padding:11px 12px;border-radius:14px;border:3px solid var(--line);background:#FFF9F1;color:var(--text);font-size:18px;font-weight:700;outline:none;font-family:inherit}
+  .field input:focus{border-color:var(--sky)}
+  .result{margin-top:12px;border-radius:16px;padding:12px;display:none}
+  .result.pass{display:block;background:#E6F8EF;border:3px solid var(--pass)}
+  .result.fail{display:block;background:#FFECEF;border:3px solid var(--fail)}
+  .result .big{font-size:18px;font-weight:800}
+  .result .sub{font-size:13px;font-weight:600;color:#6B5F80;margin-top:4px}
+  .result button{margin-top:8px;background:var(--lav);border:0;border-radius:12px;padding:8px 10px;cursor:pointer;font-weight:700;font-size:12px;box-shadow:0 4px 0 var(--lavD)}
+  details{margin-top:12px;border:3px dashed var(--line);border-radius:14px;padding:6px 10px}
+  summary{cursor:pointer;font-size:12px;color:var(--muted);font-weight:700}
+  details div{font-size:12px;font-weight:600;color:#6B5F80;margin-top:6px;line-height:1.5}
+  .mono{font-family:Nunito,monospace;font-weight:800}
+
+  .overlay{position:fixed;inset:0;background:rgba(74,63,92,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal{background:#fff;border:4px solid var(--line);border-radius:26px;padding:24px;max-width:720px;width:100%;box-shadow:0 10px 0 var(--line)}
+  .modal h2{margin:0 0 6px;font-size:26px}
+  .modal p{color:var(--muted);margin:0 0 16px;font-size:14px;font-weight:600}
+  .levels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .lvl{border:4px solid var(--line);border-radius:20px;padding:18px;cursor:pointer;text-align:left;box-shadow:0 6px 0 var(--line);transition:transform .06s}
+  .lvl:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+  .lvl.l{background:#EEF5FF}.lvl.a{background:#F3EEFF}
+  .lvl>b{display:block;font-size:19px;margin-bottom:4px}
+  .lvl span{font-size:13px;color:#6B5F80;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;font-weight:600}
+  th,td{padding:7px 8px;border-bottom:2px solid var(--line);text-align:left}
+  th{color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .code{font-family:Nunito,monospace;font-size:26px;font-weight:900;letter-spacing:2px;background:#FFF4B8;border:3px dashed var(--lemonD);border-radius:14px;padding:12px;text-align:center;margin:8px 0}
+  .row{display:flex;gap:10px;justify-content:flex-end}
+  .row .btn3.pri{background:var(--sky);color:#fff}
+  .row .btn3.sec{background:var(--line)}
+  .hidden{display:none !important}
+  .p{color:#3BAF7A;font-weight:800}.f{color:#E0556C;font-weight:800}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="m"></span>MOLE <span>DELIVERY</span> LAB</h1>
+    <span class="badge" id="levelBadge">On-Level</span><span id="nameBadge" style="font-weight:700;color:var(--muted);font-size:14px"></span>
+    <div class="progress"><span id="progTxt">0 / 10 delivered</span><div class="dots" id="dots"></div></div>
+    <button class="btn3 finishbtn" id="finishBtn">Finish &amp; get code →</button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Stockroom</h2>
+      <div class="shelf" id="shelf"></div>
+    </section>
+
+    <section class="card bench">
+      <h2>Balance</h2>
+      <div class="canvaswrap"><canvas id="cv" width="640" height="400"></canvas>
+        <div class="calc-overlay" id="calcOverlay"><div class="calc-card"><div class="big"><span>1</span>Calculate first</div><p id="calcMsg">Work out the mass in grams for this order, then type it in the box below.</p><div class="dn">↓</div></div></div>
+      </div>
+      <div class="orderbar empty" id="targetField">
+        <div class="ob-order"><span class="ob-l">ORDER</span><b id="obOrder">—</b><small id="obSub">pick a substance</small></div>
+        <div class="ob-arrow">→</div>
+        <div class="ob-target"><label for="targetIn">My calculated target mass (g)</label><input id="targetIn" type="number" step="0.01" inputmode="decimal" placeholder="type grams here" disabled></div>
+      </div>
+      <div class="steps" id="steps">
+        <div class="step" data-s="1"><span class="n">1</span>Type target (g)</div>
+        <div class="step" data-s="2"><span class="n">2</span>Tare the boat</div>
+        <div class="step" data-s="3"><span class="n">3</span>Pour to target</div>
+        <div class="step" data-s="4"><span class="n">4</span>Verify</div>
+      </div>
+      <div class="controls">
+        <button class="ctl tare" id="btnTare">TARE<small>zero the boat</small></button>
+        <button class="ctl pour" id="btnPour">POUR<small>hold · tap +0.5 g</small></button>
+        <button class="ctl fine" id="btnFine">FINE<small>hold · tap +0.02 g</small></button>
+        <button class="ctl remove" id="btnRemove">REMOVE<small>hold · tap −0.5 g</small></button>
+        <button class="ctl verify" id="btnVerify">VERIFY<small>call teacher</small></button>
+      </div>
+      <div class="hintline" id="hintline">Pick a substance from the stockroom.</div>
+    </section>
+
+    <section class="card">
+      <h2>Order ticket</h2>
+      <div class="ticket" id="ticket"><div class="empty">No order selected.</div></div>
+      <div class="result" id="result"></div>
+      <details id="hintBox" style="display:none"><summary>Hint (only if you click)</summary><div id="hintTxt"></div></details>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="levelOverlay">
+  <div class="modal">
+    <h2>Mole Delivery Lab</h2>
+    <p>You're the supplier! For each order: calculate the mass, weigh it out, and land inside the tolerance window.</p>
+    <div id="resumeBox" class="hidden" style="background:#E6F8EF;border:3px solid var(--pass);border-radius:16px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;font-weight:700" id="resumeTxt"></div>
+      <button class="btn3" id="resumeBtn" style="background:var(--mint)">Continue</button>
+      <button class="btn3" id="resetBtn" style="background:var(--line)">Start over</button>
+    </div>
+    <div class="ob-target" style="margin-bottom:14px"><label for="nameIn" style="display:block;font-size:12px;font-weight:800;color:#6B5F80;margin-bottom:5px">Your name (first and last): goes on your delivery report</label>
+      <input id="nameIn" type="text" maxlength="40" placeholder="e.g. Maria Lopez" style="width:100%;padding:11px 12px;border-radius:14px;border:3px solid var(--line);background:#FFF9F1;color:var(--text);font-size:17px;font-weight:700;outline:none;font-family:inherit"></div>
+    <p style="margin-bottom:8px">Then pick your level:</p>
+    <div class="levels">
+      <button class="lvl l" data-level="L"><b>On-Level</b><span>Every order is in <b>moles</b>. Convert to grams. Tolerance <b>±2%</b>.</span></button>
+      <button class="lvl a" data-level="A"><b>Advanced</b><span>Orders mix <b>moles, atoms, molecules &amp; formula units</b>. Convert to grams. Tolerance <b>±1%</b>.</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="finishOverlay">
+  <div class="modal">
+    <h2>Delivery report <span id="finishName" style="font-size:15px;color:var(--muted)"></span></h2>
+    <p id="finishSummary"></p>
+    <div style="max-height:260px;overflow:auto"><table id="finishTable"></table></div>
+    <p style="margin-top:12px">Your completion code: paste it into your Lab Notebook:</p>
+    <div class="code" id="codeOut">—</div>
+    <div class="row"><button class="btn3 sec" id="closeFinish">Back to lab</button><button class="btn3 pri" id="copyCode">Copy code</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const AV = 6.022e23;
+const EL = {Al:26.98,Cu:63.55,Zn:65.38,Na:22.99,Cl:35.45,H:1.01,C:12.01,O:16.00,Mg:24.31,S:32.07,Ca:40.08,K:39.10,Mn:54.94};
+const SUBS = [
+  {id:"Al",  name:"Aluminum",   fm:"Al",        comp:{Al:1}, type:"metallic", unit:"atoms",          look:{lid:"#A9B4C6",gcol:"#DCE3EC",grain:"flake"}},
+  {id:"Cu",  name:"Copper",     fm:"Cu",        comp:{Cu:1}, type:"metallic", unit:"atoms",          look:{lid:"#E39A6B",gcol:"#F2B48A",grain:"shard"}},
+  {id:"Zn",  name:"Zinc",       fm:"Zn",        comp:{Zn:1}, type:"metallic", unit:"atoms",          look:{lid:"#8E9AAE",gcol:"#C6CFDC",grain:"granule"}},
+  {id:"NaCl",name:"Table salt", fm:"NaCl",      comp:{Na:1,Cl:1}, type:"ionic", unit:"formula units", look:{lid:"#8FB8FF",gcol:"#FFFFFF",grain:"crystal"}},
+  {id:"NaHCO3",name:"Baking soda",fm:"NaHCO₃",  comp:{Na:1,H:1,C:1,O:3}, type:"ionic", unit:"formula units", look:{lid:"#FF8A9B",gcol:"#FFFBF5",grain:"powder"}},
+  {id:"MgSO4",name:"Epsom salt",fm:"MgSO₄",     comp:{Mg:1,S:1,O:4}, type:"ionic", unit:"formula units", look:{lid:"#9FE6C4",gcol:"#F3FFFA",grain:"crystal"}},
+  {id:"CaCO3",name:"Chalk",     fm:"CaCO₃",     comp:{Ca:1,C:1,O:3}, type:"ionic", unit:"formula units", look:{lid:"#C9B6FF",gcol:"#FAF7F2",grain:"powder"}},
+  {id:"KMnO4",name:"Potassium permanganate",fm:"KMnO₄", comp:{K:1,Mn:1,O:4}, type:"ionic", unit:"formula units", look:{lid:"#7A5BC7",gcol:"#8B5CF6",grain:"crystal"}},
+  {id:"C12H22O11",name:"Table sugar",fm:"C₁₂H₂₂O₁₁", comp:{C:12,H:22,O:11}, type:"covalent", unit:"molecules", look:{lid:"#FFE88A",gcol:"#FFFBEA",grain:"crystal"}},
+  {id:"C6H8O7",name:"Citric acid",fm:"C₆H₈O₇",  comp:{C:6,H:8,O:7}, type:"covalent", unit:"molecules", look:{lid:"#BFE28A",gcol:"#F7FFE8",grain:"crystal"}},
+];
+SUBS.forEach(s=>{ s.molar = +Object.entries(s.comp).reduce((a,[e,n])=>a+EL[e]*n,0).toFixed(2); });
+
+const ORDERS = {
+  L: {Al:{kind:"mol",v:0.50}, Cu:{kind:"mol",v:0.25}, Zn:{kind:"mol",v:0.30}, NaCl:{kind:"mol",v:0.50},
+      NaHCO3:{kind:"mol",v:0.25}, MgSO4:{kind:"mol",v:0.50}, CaCO3:{kind:"mol",v:1.00}, KMnO4:{kind:"mol",v:0.10},
+      C12H22O11:{kind:"mol",v:0.10}, C6H8O7:{kind:"mol",v:0.20}},
+  A: {Al:{kind:"part",v:1.20,exp:24}, Cu:{kind:"mol",v:0.40}, Zn:{kind:"part",v:3.01,exp:23}, NaCl:{kind:"mol",v:0.75},
+      NaHCO3:{kind:"part",v:1.81,exp:23}, MgSO4:{kind:"part",v:2.41,exp:23}, CaCO3:{kind:"mol",v:0.80}, KMnO4:{kind:"part",v:9.03,exp:22},
+      C12H22O11:{kind:"part",v:9.03,exp:22}, C6H8O7:{kind:"mol",v:0.25}}
+};
+function molesOf(o){ return o.kind==="mol" ? o.v : (o.v*Math.pow(10,o.exp))/AV; }
+function sup(n){ return String(n).replace(/\d/g,d=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[d]); }
+function orderText(s,o){
+  if(o.kind==="mol") return {big:o.v.toFixed(2)+" mol", small:s.name+"  ·  "+s.fm};
+  return {big:o.v.toFixed(2)+" × 10"+sup(o.exp)+" "+s.unit, small:s.name+"  ·  "+s.fm};
+}
+
+const BOAT = 2.31, CAP = 500;
+const TOL=()=>level==="A"?0.01:0.02;
+const tolPct=()=>level==="A"?"1":"2";
+let level = null, cur = null, face = "idle", faceT = 0, studentName = "";
+const SAVE_KEY="moleDeliveryLab.v1";
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({level, studentName, st, cur, t:Date.now()})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; return (n.length + n.charCodeAt(0) + n.charCodeAt(n.length-1)) % 26; }
+const st = {};
+SUBS.forEach(s=>st[s.id]={status:"none",mass:0,tared:false,verifiedMass:null,pct:null,attempts:0,myTarget:null});
+
+const $ = id=>document.getElementById(id);
+const shelf=$("shelf"), ticket=$("ticket"), dots=$("dots"), progTxt=$("progTxt");
+const btnTare=$("btnTare"), btnPour=$("btnPour"), btnFine=$("btnFine"), btnRemove=$("btnRemove"), btnVerify=$("btnVerify");
+const targetField=$("targetField"), targetIn=$("targetIn"), result=$("result"), hintBox=$("hintBox"), hintTxt=$("hintTxt"), hintline=$("hintline");
+
+// chibi jar with a face
+function jarSVG(s){
+  const L=s.look; const pat=[];
+  let seed=0; for(const ch of s.id) seed=(seed*31+ch.charCodeAt(0))%9973;
+  const rnd=()=>{seed=(seed*9301+49297)%233280; return seed/233280;};
+  const dark = (L.grain==="shard"||L.grain==="flake"||L.grain==="granule") ? "#0004" : "#0002";
+  for(let i=0;i<26;i++){
+    const x=(16+rnd()*48).toFixed(1), y=(58+rnd()*24).toFixed(1);
+    if(L.grain==="powder") pat.push(`<circle cx="${x}" cy="${y}" r="${(0.8+rnd()*1.1).toFixed(1)}" fill="${dark}"/>`);
+    else if(L.grain==="crystal") pat.push(`<rect x="${x}" y="${y}" width="${(1.5+rnd()*2.5).toFixed(1)}" height="${(1.5+rnd()*2.5).toFixed(1)}" rx=".6" fill="${dark}" transform="rotate(${(rnd()*90).toFixed(0)} ${x} ${y})"/>`);
+    else if(L.grain==="flake") pat.push(`<rect x="${x}" y="${y}" width="${(3+rnd()*4).toFixed(1)}" height="1.3" rx=".6" fill="${dark}" transform="rotate(${(rnd()*180).toFixed(0)} ${x} ${y})"/>`);
+    else if(L.grain==="shard") pat.push(`<path d="M${x} ${y} l${(2+rnd()*3).toFixed(1)} ${(-1-rnd()*2).toFixed(1)} l1 ${(2+rnd()*2).toFixed(1)} z" fill="${dark}"/>`);
+    else pat.push(`<circle cx="${x}" cy="${y}" r="${(1.3+rnd()*1.2).toFixed(1)}" fill="${dark}"/>`);
+  }
+  // eyes/mouth sit on the glass between label and contents
+  return `<svg viewBox="0 0 80 96" xmlns="http://www.w3.org/2000/svg">
+    <rect x="9" y="17" width="62" height="74" rx="16" fill="#F7F3EE" stroke="#E6DCCF" stroke-width="2"/>
+    <rect x="12" y="54" width="56" height="34" rx="12" fill="${L.gcol}" stroke="#0001"/>
+    ${pat.join("")}
+    <rect x="13" y="6" width="54" height="16" rx="7" fill="${L.lid}"/>
+    <rect x="13" y="18" width="54" height="5" rx="2" fill="${L.lid}" opacity=".75"/>
+    <rect x="15" y="26" width="50" height="15" rx="6" fill="#fff" stroke="${L.lid}" stroke-width="2"/>
+    <text x="40" y="37.2" font-size="9.5" font-weight="700" text-anchor="middle" font-family="Nunito, Arial" fill="#4A3F5C">${s.fm}</text>
+    <circle cx="31" cy="47.5" r="2.2" fill="#4A3F5C"/><circle cx="49" cy="47.5" r="2.2" fill="#4A3F5C"/>
+    <circle cx="31.8" cy="46.7" r=".7" fill="#fff"/><circle cx="49.8" cy="46.7" r=".7" fill="#fff"/>
+    <path d="M36 50.5 q4 3.5 8 0" stroke="#4A3F5C" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <circle cx="24" cy="50" r="2.6" fill="#FFB7D5" opacity=".7"/><circle cx="56" cy="50" r="2.6" fill="#FFB7D5" opacity=".7"/>
+    <rect x="16" y="24" width="12" height="62" rx="6" fill="#fff" opacity=".28"/>
+  </svg>`;
+}
+SUBS.forEach(s=>{
+  const d=document.createElement("div"); d.className="jar"; d.dataset.id=s.id;
+  d.innerHTML=jarSVG(s)+`<div class="nm">${s.name}</div><div class="fm">${s.type}</div><div class="chk">✓</div>`;
+  d.addEventListener("click",()=>select(s.id));
+  shelf.appendChild(d);
+  const dot=document.createElement("div"); dot.className="dot"; dot.dataset.id=s.id; dots.appendChild(dot);
+});
+
+function refreshShelf(){
+  document.querySelectorAll(".jar").forEach(j=>{
+    const s=st[j.dataset.id];
+    j.classList.toggle("active", cur===j.dataset.id);
+    j.classList.toggle("done", s.status==="pass");
+    j.classList.toggle("failed", s.status==="fail");
+    j.querySelector(".chk").textContent = s.status==="fail" ? "!" : "✓";
+  });
+  let passed=0, attempted=0;
+  document.querySelectorAll(".dot").forEach(d=>{
+    const s=st[d.dataset.id]; d.className="dot"+(s.status==="pass"?" done":s.status==="fail"?" fail":"")+(cur===d.dataset.id?" cur":"");
+    if(s.status==="pass") passed++; if(s.status!=="none") attempted++;
+  });
+  progTxt.textContent = passed+" / "+SUBS.length+" delivered";
+  save();
+  $("finishBtn").style.display = attempted===SUBS.length ? "inline-block" : "none";
+}
+
+function select(id){
+  cur=id; const s=SUBS.find(x=>x.id===id), o=ORDERS[level][id], S=st[id];
+  const t=orderText(s,o);
+  ticket.innerHTML=`<div class="t1">ORDER #${String(SUBS.indexOf(s)+1).padStart(2,"0")}  ·  ${level==="A"?"ADVANCED":"ON-LEVEL"}</div>
+    <div class="t2">${t.big}</div><div class="t3">${t.small}</div>
+    <div class="t4">deliver in grams · ±${tolPct()}% · one weigh boat</div>`;
+  targetField.classList.remove("empty");
+  $("obOrder").textContent=t.big; $("obSub").textContent=t.small;
+  $("calcMsg").textContent = o.kind==="part"
+    ? "Convert this order to grams (particles → mol → g), then type your answer in the box below."
+    : "Convert this order to grams (mol × molar mass), then type your answer in the box below.";
+  targetIn.value = S.myTarget ?? "";
+  targetIn.disabled = S.status==="pass";
+  if(!(S.myTarget>0) && S.status!=="pass") setTimeout(()=>targetIn.focus(),50);
+  const els=Object.keys(s.comp).map(e=>`${e} = ${EL[e].toFixed(2)}`).join("   ·   ");
+  hintTxt.innerHTML = `<b>mass (g) = mol × molar mass (g/mol)</b><br>`+
+    (o.kind==="part" ? `particles → mol: divide by 6.022 × 10²³<br>` : ``)+
+    `Atomic masses: <span class="mono">${els}</span>`;
+  hintBox.style.display="block"; hintBox.open=false;
+  face = S.status==="pass" ? "happy" : S.status==="fail" ? "dizzy" : "idle";
+  showResult(S); updateButtons(); refreshShelf();
+  hintline.textContent = S.status==="pass" ? "Delivered ✓: pick the next order."
+    : !(S.myTarget>0) ? "Type your calculated target, then TARE."
+    : S.tared ? "Hold POUR. Use FINE near the end." : "Weigh boat is on the pan: TARE first.";
+}
+targetIn.addEventListener("input",()=>{ if(cur){ st[cur].myTarget = targetIn.value===""?null:+targetIn.value; updateButtons(); save(); if(st[cur].myTarget>0 && !st[cur].tared) hintline.textContent="Now TARE the weigh boat."; }});
+
+function showResult(S){
+  if(S.status==="none"||S.verifiedMass===null){ result.className="result"; result.innerHTML=""; return; }
+  if(S.status==="pass"){
+    result.className="result pass";
+    result.innerHTML=`<div class="big">✅ Order filled!</div><div class="sub">Verified: <b>${S.verifiedMass.toFixed(2)} g</b> · error ${S.pct.toFixed(1)}% · attempt ${S.attempts}</div>`;
+  } else {
+    result.className="result fail";
+    result.innerHTML=`<div class="big">❌ Not within ${tolPct()}%</div><div class="sub">Verified: <b>${S.verifiedMass.toFixed(2)} g</b>. Re-check your calculation and technique, then re-weigh.</div><button id="reweigh">Empty boat &amp; re-weigh</button>`;
+    $("reweigh").onclick=()=>{ S.mass=0; S.status="none"; S.verifiedMass=null; S.pct=null; S.tared=false; face="idle"; updateButtons(); showResult(S); refreshShelf(); hintline.textContent="Fresh boat on the pan. TARE, then pour."; };
+  }
+}
+function setStep(n){ // n = current step 1..4, 5 = all done
+  document.querySelectorAll(".step").forEach(el=>{ const k=+el.dataset.s; el.classList.toggle("cur",k===n); el.classList.toggle("done",k<n); });
+  targetField.classList.toggle("need", n===1);
+  $("calcOverlay").classList.toggle("on", n===1);
+}
+function updateButtons(){
+  const S=cur?st[cur]:null; const locked=!S||S.status==="pass";
+  if(!S) setStep(0); else if(S.status==="pass") setStep(5); else if(!(S.myTarget>0)) setStep(1); else if(!S.tared) setStep(2); else if(S.mass<=0) setStep(3); else setStep(4);
+  btnTare.disabled = locked || (S && S.tared);
+  const canPour = !locked && S.tared && S.myTarget!==null && S.myTarget>0;
+  btnPour.disabled=btnFine.disabled=btnRemove.disabled = !canPour;
+  btnVerify.disabled = locked || S.mass<=0;
+}
+
+const cv=$("cv"), ctx=cv.getContext("2d");
+const LW=640, LH=400; let scaleK=1;
+function fitCanvas(){
+  const dpr=Math.max(1,window.devicePixelRatio||1), w=cv.clientWidth||LW;
+  const bw=Math.round(w*dpr), bh=Math.round(w*dpr*LH/LW);
+  if(cv.width!==bw||cv.height!==bh){ cv.width=bw; cv.height=bh; }
+  scaleK=bw/LW;
+}
+fitCanvas(); window.addEventListener("resize",fitCanvas);
+if(window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv.parentElement);
+let displayed=0, pouring=null, lastT=performance.now(), settle=0, particles=[], t=0;
+let holdT=0, holdStart=0;
+const TAP={pour:0.50, fine:0.02, remove:-0.50};
+function rateFor(mode){
+  const k=Math.min(1,holdT/0.8);
+  if(mode==="fine")   return 0.06+0.14*k;
+  if(mode==="pour")   return 1.5+7.5*Math.min(1,holdT/0.7);
+  return -(1+4*Math.min(1,holdT/0.5));
+}
+function hold(btn,mode){
+  const down=e=>{ e.preventDefault(); if(btn.disabled) return; pouring=mode; holdT=0; holdStart=performance.now(); btn.classList.add("held"); };
+  const up=()=>{
+    if(pouring===mode){
+      pouring=null;
+      const S=cur?st[cur]:null;
+      if(S && S.status!=="pass" && performance.now()-holdStart<160){
+        S.mass=Math.max(0,Math.min(CAP,S.mass+TAP[mode])); settle=0.5; save();
+      }
+    }
+    btn.classList.remove("held"); };
+  btn.addEventListener("mousedown",down); btn.addEventListener("touchstart",down,{passive:false});
+  ["mouseup","mouseleave","touchend","touchcancel"].forEach(ev=>btn.addEventListener(ev,up));
+  window.addEventListener("mouseup",up); window.addEventListener("touchend",up);
+}
+hold(btnPour,"pour"); hold(btnFine,"fine"); hold(btnRemove,"remove");
+document.querySelector(".controls").addEventListener("pointerdown",e=>{
+  const b=e.target.closest("button"); if(!b||!b.disabled) return;
+  const S=cur?st[cur]:null;
+  if(!S){ hintline.textContent="Pick a substance from the stockroom first."; return; }
+  if(S.status==="pass"){ hintline.textContent="This order is already delivered: pick the next one."; return; }
+  if(!(S.myTarget>0)){ hintline.textContent="⚠ Calculate your target mass and type it in first."; targetField.classList.remove("shake"); void targetField.offsetWidth; targetField.classList.add("shake"); targetIn.focus(); return; }
+  if(!S.tared){ hintline.textContent="⚠ TARE the weigh boat before pouring."; btnTare.classList.remove("nudge"); void btnTare.offsetWidth; btnTare.classList.add("nudge"); return; }
+  if(b===btnVerify){ hintline.textContent="Pour something onto the boat first."; }
+});
+btnTare.onclick=()=>{ if(!cur) return; st[cur].tared=true; hintline.textContent="Tared to 0.00. Hold POUR; switch to FINE as you get close."; updateButtons(); };
+
+btnVerify.onclick=()=>{
+  if(!cur) return; const S=st[cur], s=SUBS.find(x=>x.id===cur), o=ORDERS[level][cur];
+  const target=molesOf(o)*s.molar;
+  const reading = S.mass + (S.tared?0:BOAT);
+  S.attempts++; S.verifiedMass=+reading.toFixed(2);
+  S.pct = Math.abs(reading-target)/target*100;
+  S.status = (S.pct<=TOL()*100) ? "pass" : "fail";
+  face = S.status==="pass" ? "happy" : "dizzy"; faceT=0;
+  hintline.textContent = S.status==="pass" ? "Delivered ✓: pick the next order." : (S.tared ? `Not within ${tolPct()}%.` : `Not within ${tolPct()}%: did you TARE the weigh boat?`);
+  if(S.status==="pass") targetIn.disabled=true;
+  pouring=null; updateButtons(); showResult(S); refreshShelf();
+};
+
+const SX=392, SY=168;
+function spawn(mode,dt,s){
+  const n = mode==="fine"? 90 : 420;
+  for(let i=0;i<n*dt;i++){
+    particles.push({x:SX-10+(Math.random()-.5)*6, y:SY+8, vx:-70+(Math.random()-.5)*30, vy:40+Math.random()*40,
+      r:s.look.grain==="powder"?1.2:1.7+Math.random()*1.5, c:s.look.gcol});
+  }
+}
+function tick(now){
+  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; t+=dt; faceT+=dt;
+  const S=cur?st[cur]:null, s=cur?SUBS.find(x=>x.id===cur):null;
+  if(S && pouring && S.status!=="pass"){
+    holdT+=dt; S.mass=Math.max(0,Math.min(CAP, S.mass+rateFor(pouring)*dt));
+    if(pouring!=="remove") spawn(pouring,dt,s);
+    settle=0.6; if(face!=="dizzy") face="pour";
+  } else { settle=Math.max(0,settle-dt); if(face==="pour") face="idle"; }
+  const actual = S ? S.mass+(S.tared?0:BOAT) : 0;
+  const jitter = settle>0 ? (Math.random()-.5)*0.06 : 0;
+  displayed += (actual-displayed)*Math.min(1,dt*14) + jitter;
+  if(settle<=0) displayed += (actual-displayed)*0.5;
+  particles.forEach(p=>{ p.vy+=600*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; });
+  particles=particles.filter(p=>p.y<262);
+  if(S) updateButtons();
+  draw(S,s,settle>0);
+  requestAnimationFrame(tick);
+}
+function rr(x,y,w,h,r,c){ ctx.fillStyle=c; ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); }
+function drawFace(cx,cy){
+  // eyes
+  const blink = (Math.sin(t*1.3)>0.985) ? 0.15 : 1;
+  ctx.fillStyle="#4A3F5C";
+  if(face==="dizzy"){
+    ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=3; ctx.lineCap="round";
+    [[cx-16,cy],[cx+16,cy]].forEach(([x,y])=>{ ctx.beginPath(); ctx.moveTo(x-5,y-5); ctx.lineTo(x+5,y+5); ctx.moveTo(x+5,y-5); ctx.lineTo(x-5,y+5); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(cx,cy+13,5,0,Math.PI*2); ctx.stroke();
+    return;
+  }
+  if(face==="happy"){
+    ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=3; ctx.lineCap="round";
+    [[cx-16,cy],[cx+16,cy]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y+2,6,Math.PI*1.1,Math.PI*1.9); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(cx,cy+8,8,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
+    ctx.fillStyle="rgba(255,183,213,.8)"; ctx.beginPath(); ctx.arc(cx-28,cy+9,5,0,Math.PI*2); ctx.arc(cx+28,cy+9,5,0,Math.PI*2); ctx.fill();
+    return;
+  }
+  ctx.beginPath(); ctx.ellipse(cx-16,cy,4.5,5*blink,0,0,Math.PI*2); ctx.ellipse(cx+16,cy,4.5,5*blink,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(cx-14.5,cy-1.5,1.3,0,Math.PI*2); ctx.arc(cx+17.5,cy-1.5,1.3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.beginPath();
+  if(face==="pour"){ ctx.ellipse(cx,cy+11,4,5,0,0,Math.PI*2); ctx.stroke(); }
+  else { ctx.arc(cx,cy+7,6,0.2*Math.PI,0.8*Math.PI); ctx.stroke(); }
+  ctx.fillStyle="rgba(255,183,213,.7)"; ctx.beginPath(); ctx.arc(cx-28,cy+9,5,0,Math.PI*2); ctx.arc(cx+28,cy+9,5,0,Math.PI*2); ctx.fill();
+}
+function flask(x,y,sc,col){ // erlenmeyer
+  ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc);
+  ctx.fillStyle="rgba(255,255,255,.75)"; ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(-6,-30); ctx.lineTo(6,-30); ctx.lineTo(6,-12); ctx.lineTo(18,18); ctx.quadraticCurveTo(0,24,-18,18); ctx.lineTo(-6,-12); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(-12,4); ctx.lineTo(12,4); ctx.lineTo(18,18); ctx.quadraticCurveTo(0,24,-18,18); ctx.closePath(); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.globalAlpha=.5; ctx.fillRect(-3,-26,3,30); ctx.globalAlpha=1; ctx.restore();
+}
+function bottle(x,y,sc,col,lid){
+  ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc);
+  rr(-12,-22,24,44,8,"rgba(255,255,255,.8)"); ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(-12,-22,24,44,8); ctx.stroke();
+  rr(-12,-2,24,24,8,col); rr(-9,-30,18,10,4,lid); ctx.fillStyle="rgba(255,255,255,.5)"; ctx.fillRect(-8,-18,4,30); ctx.restore();
+}
+function plant(x,y){
+  rr(x-16,y-18,32,22,6,"#FFC9A8"); rr(x-19,y-22,38,8,4,"#F09A6B");
+  ctx.fillStyle="#9FE6C4"; [[-14,-30,9],[0,-40,12],[14,-30,9],[-6,-24,7],[7,-24,7]].forEach(([dx,dy,r])=>{ ctx.beginPath(); ctx.ellipse(x+dx,y+dy,r,r*1.3,0,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle="#5EC79A"; ctx.beginPath(); ctx.ellipse(x,y-34,3,10,0,0,Math.PI*2); ctx.fill();
+}
+function draw(S,s,unstable){
+  const W=LW,H=LH; ctx.setTransform(scaleK,0,0,scaleK,0,0); ctx.clearRect(0,0,W,H);
+  // tile wall
+  ctx.fillStyle="#EAF4FF"; ctx.fillRect(0,0,W,300);
+  ctx.strokeStyle="rgba(143,184,255,.18)"; ctx.lineWidth=1.5;
+  for(let x=0;x<=W;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,300); ctx.stroke(); }
+  for(let y=0;y<=300;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  // window (left)
+  rr(30,28,150,112,14,"#C9B6FF"); rr(38,36,134,96,10,"#BFE3FF");
+  ctx.fillStyle="rgba(255,255,255,.8)"; [[62,70,16],[80,62,20],[100,70,14],[128,96,12],[142,90,16],[158,98,11]].forEach(([x,y,r])=>{ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle="#FFE88A"; ctx.beginPath(); ctx.arc(150,56,12,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#C9B6FF"; ctx.fillRect(102,36,6,96); ctx.fillRect(38,80,134,6);
+  // shelf (right) with glassware
+  rr(430,120,190,10,4,"#E8D8C4"); rr(436,130,8,10,2,"#D9C5AC"); rr(606,130,8,10,2,"#D9C5AC");
+  flask(462,100,1,"#FFB7D5"); bottle(506,98,1,"#9FE6C4","#5EC79A"); flask(548,100,.85,"#8FB8FF"); bottle(588,100,.9,"#FFE88A","#E8C94A");
+  // bench
+  rr(0,300,W,H-300,0,"#D8EDE2"); ctx.fillStyle="#C4E3D2"; ctx.fillRect(0,300,W,12); ctx.fillStyle="#B7D9C6"; ctx.fillRect(0,386,W,14);
+  plant(72,372);
+  // clipboard on bench right
+  ctx.save(); ctx.translate(585,352); ctx.rotate(.12); rr(-28,-36,56,70,6,"#FFC9A8"); rr(-23,-30,46,60,4,"#fff"); rr(-12,-42,24,12,4,"#9A8FB0");
+  ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; [-16,-6,4,14].forEach(y=>{ ctx.beginPath(); ctx.moveTo(-16,y); ctx.lineTo(16,y); ctx.stroke(); }); ctx.restore();
+  // power cord
+  ctx.strokeStyle="#9A8FB0"; ctx.lineWidth=4; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(488,350); ctx.quadraticCurveTo(520,350,536,372); ctx.quadraticCurveTo(548,386,560,384); ctx.stroke();
+  // balance body
+  ctx.fillStyle="rgba(74,63,92,.10)"; ctx.beginPath(); ctx.ellipse(320,378,190,10,0,0,Math.PI*2); ctx.fill();
+  rr(150,286,340,86,26,"#C9B6FF");
+  ctx.fillStyle="#DCCFFF"; ctx.beginPath(); ctx.roundRect(160,292,320,26,14); ctx.fill();
+  rr(176,366,38,12,6,"#A08BE0"); rr(426,366,38,12,6,"#A08BE0");
+  // small buttons + plate
+  rr(372,326,22,12,6,"#FFB7D5"); rr(372,342,22,12,6,"#9FE6C4");
+  ctx.fillStyle="#6B5F80"; ctx.font="700 8px Fredoka, Arial"; ctx.fillText("ON",377,335); ctx.fillText("TARE",373,351);
+  // stem + pan
+  ctx.fillStyle="#A08BE0"; ctx.beginPath(); ctx.roundRect(308,262,24,30,8); ctx.fill();
+  ctx.fillStyle="rgba(74,63,92,.12)"; ctx.beginPath(); ctx.ellipse(320,272,104,16,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#E8E0FF"; ctx.beginPath(); ctx.ellipse(320,266,100,15,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#F6F2FF"; ctx.beginPath(); ctx.ellipse(320,262,100,14,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.ellipse(320,262,84,10,0,0,Math.PI*2); ctx.stroke();
+  if(S){
+    // weigh boat
+    ctx.fillStyle="rgba(74,63,92,.10)"; ctx.beginPath(); ctx.ellipse(320,258,70,6,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#FFFFFF"; ctx.strokeStyle="#E6DCCF"; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(244,216); ctx.lineTo(396,216); ctx.lineTo(378,256); ctx.lineTo(262,256); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="#F3EEF9"; ctx.beginPath(); ctx.moveTo(262,256); ctx.lineTo(378,256); ctx.lineTo(372,250); ctx.lineTo(268,250); ctx.closePath(); ctx.fill();
+    if(S.mass>0){
+      const ref = Math.max(30, molesOf(ORDERS[level][cur])*s.molar*1.5);
+      const frac=Math.min(1,S.mass/ref);
+      const h=6+frac*34, w=56+frac*66;
+      ctx.fillStyle=s.look.gcol; ctx.beginPath(); ctx.moveTo(320-w/2,254); ctx.quadraticCurveTo(320,254-h*2,320+w/2,254); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle="rgba(74,63,92,.18)"; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle="rgba(255,255,255,.45)"; ctx.beginPath(); ctx.ellipse(320-w*.15,254-h*.9,w*.18,h*.25,-.3,0,Math.PI*2); ctx.fill();
+    }
+    // hand + jar (tilts when pouring)
+    const ang = (pouring==="pour") ? -1.05 : (pouring==="fine") ? -0.8 : -0.3;
+    ctx.save(); ctx.translate(SX+20,SY-10); ctx.rotate(ang);
+    rr(-18,-48,36,72,12,"#F7F3EE"); ctx.strokeStyle="#E6DCCF"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(-18,-48,36,72,12); ctx.stroke();
+    rr(-16,-54,32,14,6,s.look.lid);
+    ctx.fillStyle=s.look.gcol; ctx.beginPath(); ctx.roundRect(-14,-8,28,28,8); ctx.fill();
+    ctx.fillStyle="#4A3F5C"; ctx.beginPath(); ctx.arc(-6,-24,2,0,Math.PI*2); ctx.arc(6,-24,2,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(0,-19,4,.15*Math.PI,.85*Math.PI); ctx.stroke();
+    // chibi hand gripping the jar
+    ctx.fillStyle="#FFD9C2"; ctx.beginPath(); ctx.roundRect(-24,-2,48,30,14); ctx.fill();
+    ctx.strokeStyle="#F0B48F"; ctx.lineWidth=1.5; [[-10,0],[0,0],[10,0]].forEach(([dx])=>{ ctx.beginPath(); ctx.moveTo(dx,4); ctx.lineTo(dx,22); ctx.stroke(); });
+    ctx.restore();
+    // arm
+    ctx.strokeStyle="#FFD9C2"; ctx.lineWidth=22; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(SX+42,SY+8); ctx.quadraticCurveTo(SX+120,SY+10,W+20,SY-20); ctx.stroke();
+    ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=26; ctx.beginPath(); ctx.moveTo(SX+100,SY+4); ctx.quadraticCurveTo(SX+140,SY+2,W+20,SY-20); ctx.stroke();
+    if(pouring && pouring!=="remove" && s.look.grain==="powder"){ ctx.fillStyle="rgba(255,255,255,.5)"; for(let i=0;i<5;i++){ ctx.beginPath(); ctx.arc(320+(Math.random()-.5)*90,236+(Math.random()-.5)*20,4+Math.random()*5,0,Math.PI*2); ctx.fill(); } }
+  }
+  particles.forEach(p=>{ ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="rgba(74,63,92,.15)"; ctx.lineWidth=.6; ctx.stroke(); });
+  // LCD
+  rr(174,322,176,42,12,"#3D3356"); rr(178,326,168,34,10,"#2E2745");
+  ctx.fillStyle=unstable?"#FFD36B":"#9FE6C4"; ctx.font="700 28px Nunito, 'Courier New', monospace"; ctx.textAlign="right";
+  ctx.fillText(displayed.toFixed(2),312,353); ctx.font="700 14px Fredoka, Arial"; ctx.fillText("g",338,352); ctx.textAlign="left";
+  drawFace(430,340);
+  // spec plate (label sticker on the top band)
+  rr(166,297,150,16,6,"#FFFFFF"); ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=1.2; ctx.beginPath(); ctx.roundRect(166,297,150,16,6); ctx.stroke();
+  ctx.fillStyle="#8A7FA3"; ctx.font="700 9px Fredoka, Arial"; ctx.textAlign="center"; ctx.fillText("LAB-SCALE  ·  MAX 500 g  ·  d = 0.01 g",241,308.5); ctx.textAlign="left";
+  // status LED pill
+  const pillCol = unstable?"#FFD36B":"#9FE6C4", pillTxt = unstable?"SETTLING":"STABLE";
+  rr(396,297,78,16,8,"#FFFFFF"); ctx.strokeStyle=pillCol; ctx.lineWidth=1.6; ctx.beginPath(); ctx.roundRect(396,297,78,16,8); ctx.stroke();
+  ctx.fillStyle=pillCol; ctx.beginPath(); ctx.arc(406,305,3.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#6B5F80"; ctx.font="700 9px Fredoka, Arial"; ctx.fillText(pillTxt,414,308.5);
+  // speech bubble from the scale
+  let say=null;
+  if(S){
+    if(S.status==="pass") say="Order filled! Nice work ✓";
+    else if(S.status==="fail") say=`Hmm… that's not within ${tolPct()}%.`;
+    else if(pouring==="remove") say="Scooping some back out…";
+    else if(pouring) say="Pouring… easy does it!";
+    else if(!S.tared) say="Boat's on! Press TARE to zero me.";
+    else if(S.mass<=0) say="Zeroed. Hold POUR when ready.";
+    else if(unstable) say="Hold on, settling…";
+    else say="Reading's stable. VERIFY when it's right.";
+  }
+  if(say){
+    ctx.font="700 12px Fredoka, Arial"; const tw=ctx.measureText(say).width, bw=tw+24, bx=Math.min(W-bw-10,452), by=236;
+    ctx.fillStyle="rgba(74,63,92,.08)"; ctx.beginPath(); ctx.roundRect(bx+2,by+3,bw,30,12); ctx.fill();
+    ctx.fillStyle="#fff"; ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(bx,by,bw,30,12); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+18,by+29); ctx.lineTo(bx+6,by+44); ctx.lineTo(bx+34,by+29); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle="#D9CFE8"; ctx.beginPath(); ctx.moveTo(bx+18,by+30); ctx.lineTo(bx+6,by+44); ctx.lineTo(bx+34,by+30); ctx.stroke();
+    ctx.fillStyle="#4A3F5C"; ctx.fillText(say,bx+12,by+19);
+  }
+  if(!S){ ctx.fillStyle="#9A8FB0"; ctx.font="700 15px Fredoka, Arial"; ctx.textAlign="center"; ctx.fillText("Pick a substance to put a weigh boat on the pan.",320,196); ctx.textAlign="left"; }
+}
+requestAnimationFrame(tick);
+
+function setLevel(L){
+  const nm=$("nameIn").value.trim();
+  if(!nm){ $("nameIn").focus(); $("nameIn").style.borderColor="var(--fail)"; $("nameIn").placeholder="Type your name first"; return; }
+  studentName=nm; level=L;
+  $("levelBadge").textContent = L==="A"?"Advanced":"On-Level"; $("levelBadge").classList.toggle("adv",L==="A");
+  $("nameBadge").textContent="· "+studentName;
+  $("levelOverlay").classList.add("hidden"); save();
+}
+document.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>setLevel(b.dataset.level));
+const qp=(new URLSearchParams(location.search).get("level")||"").toLowerCase();
+const lockedLevel = (qp==="advanced"||qp==="a") ? "A" : (qp==="onlevel"||qp==="l") ? "L" : null;
+if(lockedLevel){ document.querySelectorAll(".lvl").forEach(b=>{ if(b.dataset.level!==lockedLevel) b.style.display="none"; }); }
+// resume a saved session on this device
+(function(){
+  const sv=load(); if(!sv||!sv.level||!sv.studentName) return;
+  let passed=0; SUBS.forEach(x=>{ if(sv.st&&sv.st[x.id]&&sv.st[x.id].status==="pass") passed++; });
+  $("resumeBox").classList.remove("hidden");
+  $("resumeTxt").textContent=`Welcome back, ${sv.studentName}: ${passed} / ${SUBS.length} delivered (${sv.level==="A"?"Advanced":"On-Level"}).`;
+  $("resumeBtn").onclick=()=>{
+    SUBS.forEach(x=>{ if(sv.st&&sv.st[x.id]) Object.assign(st[x.id], sv.st[x.id]); });
+    $("nameIn").value=sv.studentName; setLevel(sv.level); refreshShelf(); if(sv.cur) select(sv.cur);
+  };
+  $("resetBtn").onclick=()=>{ try{localStorage.removeItem(SAVE_KEY);}catch(e){} $("resumeBox").classList.add("hidden"); };
+})();
+
+function makeCode(){
+  let bits=0; SUBS.forEach((s,i)=>{ if(st[s.id].status==="pass") bits|=(1<<i); });
+  const chk = String.fromCharCode(65 + ((bits*7 + 13 + (level==="A"?5:0) + nameHash(studentName)) % 26));
+  return "MOLE-"+level+"-"+String(bits).padStart(4,"0")+"-"+chk;
+}
+$("finishBtn").onclick=()=>{
+  let passed=0; const rows=SUBS.map((s,i)=>{ const S=st[s.id]; if(S.status==="pass") passed++;
+    return `<tr><td>${i+1}</td><td>${s.name} <span class="mono">${s.fm}</span></td><td>${S.myTarget!==null?S.myTarget.toFixed(2):"—"} g</td><td>${S.verifiedMass!==null?S.verifiedMass.toFixed(2):"—"} g</td><td>${S.pct!==null?S.pct.toFixed(1)+"%":"—"}</td><td class="${S.status==="pass"?"p":"f"}">${S.status==="pass"?"PASS":"FAIL"}</td></tr>`; }).join("");
+  $("finishTable").innerHTML=`<tr><th>#</th><th>Substance</th><th>My target</th><th>Verified</th><th>% err</th><th>Result</th></tr>${rows}`;
+  $("finishSummary").textContent=`${passed} of ${SUBS.length} orders delivered within ±${tolPct()}% (${level==="A"?"Advanced":"On-Level"}). Record your targets and verified masses in your Lab Notebook.`;
+  $("codeOut").textContent=makeCode(); $("finishName").textContent="· "+studentName;
+  $("finishOverlay").classList.remove("hidden");
+};
+$("closeFinish").onclick=()=>$("finishOverlay").classList.add("hidden");
+$("copyCode").onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText($("codeOut").textContent); $("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500); };
+})();
+</script>
+</body>
+</html>

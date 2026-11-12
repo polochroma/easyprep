@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bungee Safety Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+  --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+  --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+  --pass:#6FD3A0; --fail:#FF8A9B;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+button{font-family:inherit;color:var(--text)}
+input,select{font-family:inherit;color:var(--text)}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:640px){header h1{font-size:18px}}
+header h1 span{color:var(--skyD)}
+.logo{width:30px;height:30px;border-radius:50%;background:var(--peachD);box-shadow:inset -6px -6px 0 rgba(0,0,0,.08);position:relative}
+.logo:after{content:"";position:absolute;left:7px;top:8px;width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--lemon);color:#6B5F80}
+.spacer{flex:1}
+.prog{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;background:#EADFCE;border:2px solid #fff;box-shadow:0 0 0 2px #EADFCE}
+.dot.on{background:var(--pass);box-shadow:0 0 0 2px var(--pass)}
+.dot.half{background:var(--lemonD);box-shadow:0 0 0 2px var(--lemonD)}
+.btn{border:0;border-radius:14px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.10);transition:transform .08s,box-shadow .08s;background:var(--sky);color:#2E2745}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.10)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.mint{background:var(--mint)} .btn.lav{background:var(--lav)} .btn.peach{background:var(--peach)} .btn.lemon{background:var(--lemon)} .btn.pink{background:var(--pink)}
+.btn.ghost{background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:12px}
+.btn.big{font-size:16px;padding:12px 22px}
+main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:16px;padding:16px 18px 28px;max-width:1380px;width:100%;margin:0 auto}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}.col-mid{grid-column:1/-1;order:-1}}
+@media(max-width:640px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+.card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+.card + .card{margin-top:14px}
+.card.locked{opacity:.55;pointer-events:none}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.jump{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.jump:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.jump.active{border-color:var(--sky);background:#EEF5FF}
+.jump svg{width:44px;height:56px;display:block;margin:0 auto}
+.jump .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.jump .fm{font-size:10px;color:var(--muted);font-weight:600}
+.jump.lockedj{pointer-events:none;opacity:.55}
+.bandrow{display:flex;align-items:center;gap:8px;margin:8px 0;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:16px;padding:8px 10px}
+.bandrow .sw{width:34px;height:22px;border-radius:11px;border:3px solid;flex:0 0 auto}
+.bandrow .nm{flex:1;font-size:13px;font-weight:700;line-height:1.15}
+.bandrow .nm small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+.bandrow .ct{display:flex;align-items:center;gap:6px}
+.bandrow .ct button{width:30px;height:30px;border-radius:50%;border:0;background:var(--lav);font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.10);line-height:1}
+.bandrow .ct button:disabled{opacity:.35;cursor:not-allowed}
+.bandrow .ct b{min-width:26px;text-align:center;font-size:17px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:14px;background:#FAF7F2;border:2px solid transparent}
+.step.now{background:#FFF4B8;border-color:#F0DC8A}
+.step.done{background:#E6F8EF}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--lav);color:#3D3356;font-weight:700;display:grid;place-items:center;font-size:13px}
+.step.done .n{background:var(--pass);color:#fff}
+.step .t{font-size:13px;line-height:1.25}
+.step .t b{display:block;font-size:13.5px}
+.stage{position:relative;background:#F3EEF9;border:3px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+canvas{display:block;width:100%;height:auto}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#6B5F80}
+.tag.rec{background:#FFECEF;border-color:#FFB7D5;color:#E0556C}
+.tag.rec:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#E0556C;margin-right:6px;animation:blink 1s infinite}
+.tag.go{background:#E6F8EF;border-color:#9FE6C4;color:#2E7D55}
+@keyframes blink{50%{opacity:.2}}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:10px;background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 12px}
+.scrub input[type=range]{flex:1;accent-color:var(--skyD)}
+.scrub .tm{font-weight:700;font-size:13px;color:var(--muted);min-width:70px;text-align:right}
+.scrub .lab{font-size:12px;font-weight:700;color:var(--muted)}
+.field{display:flex;align-items:center;gap:8px;margin:8px 0}
+.field label{font-size:13px;font-weight:700;flex:1;line-height:1.2}
+.field input{width:104px;border:3px solid var(--line);border-radius:12px;padding:7px 10px;font-size:15px;font-weight:700;text-align:right;background:#FFFBF5}
+.field input:focus{outline:none;border-color:var(--sky)}
+.field input:disabled{background:#F6F1EA;color:#9A8FB0}
+.field .u{font-size:13px;color:var(--muted);font-weight:700;min-width:28px}
+.note{font-size:12.5px;line-height:1.35;color:#6B5F80;background:#FAF7F2;border-radius:12px;padding:8px 10px;margin:6px 0}
+.ok{background:#E6F8EF;color:#2E7D55;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bad{background:#FFECEF;color:#C23B52;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.warn{background:#FFF4B8;color:#7A5B00;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:10px 8px 0;background:#FFFBF5;border:3px solid var(--line);border-radius:16px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bar .fill{width:70%;border-radius:10px 10px 4px 4px;transition:height .06s linear;min-height:3px}
+.bar .lb{font-size:11px;font-weight:700;color:#6B5F80;margin:6px 0 4px;text-align:center;line-height:1.1}
+.bar .val{font-size:11px;font-weight:700;color:var(--muted);height:14px}
+.ledger{width:100%;border-collapse:collapse;font-size:12.5px}
+.ledger td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700}
+.ledger td:last-child{text-align:right;font-family:Nunito,monospace;font-variant-numeric:tabular-nums}
+.ledger .hid{color:#C6CFDC;letter-spacing:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.3}
+.hide{display:none!important}
+.ov{position:fixed;inset:0;background:rgba(74,63,92,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.ov.on{display:flex}
+.modal{background:#fff;border:3px solid var(--line);border-radius:24px;padding:22px;max-width:640px;width:100%;box-shadow:0 10px 0 var(--line);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px}
+.modal h2 span{color:var(--skyD)}
+.modal p{font-size:14px;line-height:1.4;margin:6px 0 12px}
+.modal input.name{width:100%;border:3px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;font-weight:700;background:#FFFBF5}
+.modal input.name:focus{outline:none;border-color:var(--sky)}
+.code{font-family:Nunito,monospace;font-weight:800;font-size:22px;letter-spacing:1px;background:#FFF4B8;border:3px dashed #F0DC8A;border-radius:14px;padding:10px 14px;display:inline-block;margin:6px 0}
+.rep table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.rep th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.rep td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.rep td:last-child{text-align:right}
+.verdict{font-size:20px;font-weight:800;border-radius:16px;padding:12px 14px;margin:8px 0}
+.verdict.good{background:#E6F8EF;color:#2E7D55}
+.verdict.meh{background:#FFF4B8;color:#7A5B00}
+.verdict.crash{background:#FFECEF;color:#C23B52}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;padding:0 18px 18px;line-height:1.4}
+@media print{header,.col-left,.col-right,.controls,.scrub,.foot{display:none!important}main{display:block}.ov{position:static;background:none}.modal{box-shadow:none;max-width:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1><i class="logo"></i>BUNGEE <span>SAFETY</span> CHALLENGE <span class="pill" id="lvlPill">Virtual Lab</span></h1>
+  <div class="spacer"></div>
+  <div class="prog"><span id="progTxt">0 / 6 steps</span><div class="dots" id="dots"></div></div>
+  <button class="btn lemon sm" id="finishBtn" disabled>Finish &amp; get code →</button>
+</header>
+
+<main>
+<!-- LEFT -->
+<section class="col-left">
+  <div class="card" id="jumpCard">
+    <h2>1 · Pick your jumper</h2>
+    <div class="shelf" id="shelf"></div>
+    <div class="note" id="jumpNote">Pick a jumper. Its mass shows on the kitchen scale.</div>
+  </div>
+  <div class="card" id="buildCard">
+    <h2>2 · Build the bungee cord</h2>
+    <div class="bandrow"><i class="sw" style="background:#FFC9A8;border-color:#F09A6B"></i><div class="nm">Long bands<small>big loops, stretchier</small></div><div class="ct"><button id="lMinus">−</button><b id="lCount">0</b><button id="lPlus">+</button></div></div>
+    <div class="bandrow"><i class="sw" style="background:#9FE6C4;border-color:#5EC79A"></i><div class="nm">Short bands<small>small loops, stiffer</small></div><div class="ct"><button id="sMinus">−</button><b id="sCount">0</b><button id="sPlus">+</button></div></div>
+    <div class="note" id="buildNote">Chain the bands loop through loop. You can change the cord any time before the official drop. Changing it erases your calibration, because a new cord needs new measurements.</div>
+  </div>
+  <div class="card">
+    <h2>Procedure</h2>
+    <div class="steps" id="steps"></div>
+  </div>
+</section>
+
+<!-- MIDDLE -->
+<section class="col-mid">
+  <div class="stage">
+    <canvas id="cv" width="900" height="720"></canvas>
+    <div class="hud"><span class="tag" id="tagJ">No jumper</span><span class="tag" id="tagM">— g</span><span class="tag" id="tagCord">0 bands</span><span class="tag go hide" id="tagGo">CLEARED FOR LAUNCH</span><span class="tag rec hide" id="tagRec">SLOW-MO REC</span></div>
+  </div>
+  <div class="controls" id="calControls">
+    <button class="btn lav" id="btnHangCord">Hang the cord alone</button>
+    <button class="btn lav" id="btnHangJumper">Hang the jumper on it</button>
+    <button class="btn ghost" id="btnTakeDown">Take it down</button>
+    <span class="hint" id="stageHint">Build a cord, then hang it from the platform hook to measure it.</span>
+  </div>
+  <div class="controls hide" id="dropControls">
+    <button class="btn peach big" id="btnDrop">▶ OFFICIAL DROP</button>
+    <button class="btn ghost" id="btnReplay" disabled>↺ Replay in slow motion</button>
+    <button class="btn ghost hide" id="btnBackCal">← Back to calibration</button>
+    <span class="hint" id="dropHint">Jumper on the platform at 3.00 m. One drop counts. Ready?</span>
+  </div>
+  <div class="scrub hide" id="scrubBox">
+    <span class="lab">SCRUB THE VIDEO</span>
+    <input type="range" id="scrub" min="0" max="1000" value="0">
+    <span class="tm" id="scrubT">t = 0.000 s</span>
+  </div>
+</section>
+
+<!-- RIGHT -->
+<section class="col-right">
+  <div class="card">
+    <h2>Energy account (live)</h2>
+    <div class="bars">
+      <div class="bar"><div class="fill" id="bPE" style="background:var(--sky);height:0%"></div><div class="lb">Gravity<br>PE<sub>g</sub></div><div class="val" id="vPE"></div></div>
+      <div class="bar"><div class="fill" id="bKE" style="background:var(--mint);height:0%"></div><div class="lb">Kinetic<br>KE</div><div class="val" id="vKE"></div></div>
+      <div class="bar"><div class="fill" id="bEL" style="background:var(--lav);height:0%"></div><div class="lb">Elastic<br>½kx²</div><div class="val" id="vEL"></div></div>
+      <div class="bar"><div class="fill" id="bTH" style="background:var(--peach);height:0%"></div><div class="lb">Thermal<br>+ sound</div><div class="val" id="vTH"></div></div>
+    </div>
+    <div class="hint">Numbers unlock after your official drop.</div>
+  </div>
+
+  <div class="card" id="calCard">
+    <h2>3 · Calibration (Phase 1)</h2>
+    <div class="note" id="calNote">Hang the cord from the hook and read the tape measure with the zoom lens. Then hang the jumper and read it again. Type both in <b>meters</b> (example: 148 cm = <b>1.48</b>).</div>
+    <div class="field"><label>Unstretched length L<sub>o</sub></label><input id="inLo" type="number" step="0.01" placeholder="0.00" disabled><span class="u">m</span></div>
+    <div class="field"><label>Stretched length L<sub>s</sub> (jumper hanging)</label><input id="inLs" type="number" step="0.01" placeholder="0.00" disabled><span class="u">m</span></div>
+    <div class="field"><label>Spring constant k = m g / (L<sub>s</sub> − L<sub>o</sub>)</label><input id="inK" type="number" step="0.01" placeholder="0.00" disabled><span class="u">N/m</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn mint" id="btnCal" disabled>✓ Check calibration</button><button class="btn ghost sm" id="btnCalHint">Hint</button></div>
+    <div id="calMsg"></div>
+  </div>
+
+  <div class="card" id="predCard">
+    <h2>4 · Prediction (Phase 2)</h2>
+    <div class="note">Platform height <b>3.00 m</b>, g = 9.8 m/s². Do the math on your sheet, then type it here. Your jumper's length (ankles to top of head) is on the tag by the scale.</div>
+    <div class="field"><label>Initial energy PE<sub>g</sub> = m × 9.8 × 3.0</label><input id="inPE" type="number" step="0.01" placeholder="0.00" disabled><span class="u">J</span></div>
+    <div class="field"><label>Predicted max stretch x (from ½kx² = PE<sub>g</sub>)</label><input id="inX" type="number" step="0.01" placeholder="0.00" disabled><span class="u">m</span></div>
+    <div class="field"><label>Predicted gap: 3.00 − (L<sub>o</sub> + x + jumper length)</label><input id="inGap" type="number" step="1" placeholder="0" disabled><span class="u">cm</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn lav" id="btnPred" disabled>✓ Check my prediction</button><button class="btn ghost sm" id="btnPredHint">Hint</button></div>
+    <div id="predMsg"></div>
+  </div>
+
+  <div class="card hide" id="readCard">
+    <h2>5 · Read the stop point (Phase 3)</h2>
+    <div class="note">Scrub the slow-motion video to the LOWEST point of the fall. The dashed line marks the top of the jumper's head. Read its height above the floor off the wall tape, to the nearest centimeter.</div>
+    <div class="field"><label>Lowest point of the head above the floor</label><input id="inLow" type="number" step="1" placeholder="0" disabled><span class="u">cm</span></div>
+    <div style="display:flex;gap:8px"><button class="btn mint" id="btnLow" disabled>✓ Record reading</button><button class="btn ghost sm" id="btnLowHint">Hint</button></div>
+    <div id="lowMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Safety report</h2>
+    <table class="ledger"><tbody id="ledger"></tbody></table>
+    <div class="hint">Copy these onto your lab sheet. The Phase 4 audit questions are yours to answer there.</div>
+  </div>
+</section>
+</main>
+<div class="foot">Bungee Safety Challenge · EasyPrep STEM · The simulated cord loses a little energy to heat as it stretches, so the real stop point sits a hair above the math. That is on purpose: it is what rubber does.</div>
+</div>
+
+<!-- START -->
+<div class="ov on" id="ovStart">
+  <div class="modal">
+    <h2>Bungee <span>Safety</span> Challenge</h2>
+    <p>You are the safety engineer. Your jumper is a toy, your cord is a chain of rubber bands, and the platform is <b>3.00 m</b> up. Calibrate the cord, use conservation of energy to predict the stop point, and build a cord that stops the jumper <b>within 5 cm of the floor</b> without touching it. You get <b>ONE</b> official drop.</p>
+    <p style="margin-bottom:4px"><b>Your name (first and last)</b>: it goes on your safety report.</p>
+    <input class="name" id="inName" placeholder="e.g. Jordan Rivera" autocomplete="off">
+    <div class="note" style="margin-top:12px">Same as your lab sheet: Phase 1 calibrate (L<sub>o</sub>, L<sub>s</sub>, k), Phase 2 predict (PE<sub>g</sub>, x, stop point), Phase 3 one official drop, Phase 4 audit on paper. g = 9.8 m/s².</div>
+    <div style="margin-top:10px"><button class="btn peach big" id="btnStart">Start the challenge →</button></div>
+    <p class="hint" id="startErr"></p>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm hide" id="btnResume">Continue where I left off</button><button class="btn ghost sm hide" id="btnWipe">Start over</button></div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="ov" id="ovReport">
+  <div class="modal rep">
+    <h2>Safety <span>engineer's report</span></h2>
+    <p id="repWho"></p>
+    <div id="repBody"></div>
+    <p><b>Your completion code</b>: paste it into the box at the top of your lab sheet:</p>
+    <div class="code" id="repCode">—</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn mint" id="copyCode">Copy code</button>
+      <button class="btn ghost" id="printRep">Print / save PDF</button>
+      <button class="btn ghost" id="closeRep">Back to the lab</button>
+      <button class="btn lemon hide" id="playBtn">🎮 Open free play</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- constants ---------- */
+const G = 9.8, A = 3.00;          // platform / anchor height, m
+const SLOW = 0.25;                // slow-motion playback factor
+const PX = 185;                   // px per meter on stage
+const JUMPERS = [
+  {id:"ann", name:"Astro Ann",   g:95,  L:0.22, col:"#8FB8FF", acc:"#5F8FE0", hat:"helmet"},
+  {id:"zed", name:"Captain Zed", g:150, L:0.25, col:"#FFB7D5", acc:"#F08AB4", hat:"cape"},
+  {id:"dan", name:"Dino Dan",    g:220, L:0.28, col:"#9FE6C4", acc:"#5EC79A", hat:"spikes"},
+  {id:"rex", name:"Robo-Rex",    g:310, L:0.32, col:"#C6CFDC", acc:"#8A7FA3", hat:"antenna"},
+  {id:"pip", name:"Princess Pip",g:420, L:0.36, col:"#C9B6FF", acc:"#9C84E6", hat:"crown"},
+  {id:"bud", name:"Buddy Bear",  g:560, L:0.40, col:"#FFC9A8", acc:"#F09A6B", hat:"ears"},
+];
+// rubber bands: unstretched length added to the chain per band, and stiffness of one band
+const BANDS = { long:{L:0.080, k:85, col:"#FFC9A8", edge:"#F09A6B"}, short:{L:0.045, k:150, col:"#9FE6C4", edge:"#5EC79A"} };
+
+/* ---------- state ---------- */
+let studentName="", jumperId=null, nLong=0, nShort=0;
+let cal = {Lo:null, Ls:null, k:null, done:false};     // student readings (accepted)
+let pred = {PE:null, x:null, gap:null, done:false, cleared:false};
+let view = "cal";             // cal | drop
+let hang = "none";            // none | cord | jumper   (calibration display)
+let drop = null;              // official drop record {traj, tEnd, tBottom, lowTrue, crash, ...}
+let lowRead = null;           // student reading of the lowest point (cm)
+let finished = false, freeplay = false;
+let anim = {on:false, t0:0}, scrubT = 0, calLocked=false;
+let hookeSay = null;
+
+const $ = id => document.getElementById(id);
+const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+// each student's rubber bands are their own batch: stiffness jittered +/-10 % by name
+function kBand(type){ const h=nameHash(studentName); const j = 1 + ((h*(type==="long"?7:13))%21 - 10)/100; return BANDS[type].k * j; }
+function jumper(){ return JUMPERS.find(j=>j.id===jumperId); }
+function massKg(){ const j=jumper(); return j? j.g/1000 : 0; }
+function cordL0(){ return nLong*BANDS.long.L + nShort*BANDS.short.L; }
+function cordK(){ if(nLong+nShort===0) return 0; return 1/(nLong/kBand("long") + nShort/kBand("short")); }
+function calStretch(){ const k=cordK(); return k? massKg()*G/k : 0; }   // true stretch with the jumper hanging still
+function nBands(){ return nLong+nShort; }
+
+function save(){ try{ localStorage.setItem("bungeeLab", JSON.stringify({studentName,jumperId,nLong,nShort,cal,pred,view,hang:"none",drop,lowRead,finished,freeplay,calLocked})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("bungeeLab")||"null"); }catch(e){ return null; } }
+
+/* ---------- drop physics ---------- */
+// The centre of mass is the point mass. It starts Lj/2 above the deck, free-falls L0 + Lj until the cord is taut
+// (jumper now head-down), then the cord pulls with k x. Damping c is tuned so the first bottom sits `rise` metres
+// above the ideal (lossless) bottom: rubber turns a little energy into heat.
+function idealX(m,k,d){ return (m*G + Math.sqrt(m*G*m*G + 2*k*m*G*d))/k; }
+function integrate(m,k,L0,Lj,c){
+  const d0 = L0+Lj, dt=0.0005; let s=0, v=0, t=0, step=0; const traj=[]; let bottom=null, crash=null, tBottom=null;
+  const headH = ()=> A - s;                       // head height above floor once hanging (and the lowest body point in general)
+  let prevV=0;
+  while(t < 12){
+    if(step++%4===0) traj.push([t,s,v]);
+    const x = Math.max(0, s-d0);
+    const a = G - (x>0 ? (k/m)*x + c*v : 0);
+    v += a*dt; s += v*dt; t += dt;
+    if(headH() <= 0 && !crash){ crash = t; traj.push([t,A,v]); break; }
+    if(prevV>0 && v<=0 && bottom===null && x>0){ bottom = s; tBottom = t; }
+    prevV = v;
+    if(bottom!==null && t > tBottom + 1.6) break;
+  }
+  return {traj, bottom, tBottom, crash, tEnd: crash? crash+0.6 : t, d0};
+}
+function makeDrop(){
+  const m=massKg(), k=cordK(), L0=cordL0(), Lj=jumper().L;
+  const h=nameHash(studentName+nBands());
+  const rise = 0.008 + ((h%17)/16)*0.014 + Math.random()*0.004;   // 0.8 to 2.6 cm above the lossless bottom
+  const xi = idealX(m,k,L0+Lj), target = L0+Lj+xi - rise;
+  // bisection on c so that the first bottom lands on target (if the floor allows)
+  let lo=0, hi=12, best=null;
+  for(let i=0;i<22;i++){ const c=(lo+hi)/2; const r=integrate(m,k,L0,Lj,c); best=r; const got = r.crash? A : r.bottom; if(got===null){ hi=c; continue; } if(got > target) lo=c; else hi=c; }
+  const r = best;
+  const lowTrue = r.crash ? 0 : Math.max(0, A - r.bottom);     // head height above floor at the bottom, m
+  return {traj:r.traj, tEnd:r.tEnd, tBottom:r.crash||r.tBottom, crash:!!r.crash, lowTrue, m, k, L0, Lj, d0:r.d0, E0:m*G*(A+Lj/2), xIdeal:xi};
+}
+function stateAt(t){ // interpolate the trajectory
+  if(!drop) return {s:0,v:0};
+  const T=drop.traj; if(t<=0) return {s:0,v:0}; if(t>=T[T.length-1][0]) { const l=T[T.length-1]; return {s:l[1],v:0}; }
+  let lo=0, hi=T.length-1; while(hi-lo>1){ const mid=(lo+hi)>>1; if(T[mid][0]<=t) lo=mid; else hi=mid; }
+  const a=T[lo], b=T[hi], f=(t-a[0])/((b[0]-a[0])||1); return {s:a[1]+(b[1]-a[1])*f, v:a[2]+(b[2]-a[2])*f};
+}
+
+/* ---------- drawing ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d"); const W=cv.width, H=cv.height;
+const floorY=672, yOf=h=>floorY-h*PX;             // height above floor -> y
+const anchorX=560, anchorY=yOf(A), tapeX=430, tmX=606;
+function rr(x,y,w,h,r,fill,stroke){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=3;ctx.stroke();} }
+
+function drawRoom(){
+  ctx.fillStyle="#F3EEF9"; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#EFE8F6"; for(let i=0;i<W;i+=48) ctx.fillRect(i,0,24,floorY);
+  // window (top centre-left)
+  rr(60,40,170,120,16,"#DDEEFF","#C9B6FF");
+  ctx.fillStyle="#FFF4B8"; ctx.beginPath(); ctx.arc(195,70,16,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#fff"; [[95,120,0],[130,130,6]].forEach(([x,y,d])=>{ctx.beginPath();ctx.arc(x,y+d,14,0,Math.PI*2);ctx.arc(x+18,y+d-8,17,0,Math.PI*2);ctx.arc(x+36,y+d,14,0,Math.PI*2);ctx.fill();});
+  ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(145,40); ctx.lineTo(145,160); ctx.moveTo(60,100); ctx.lineTo(230,100); ctx.stroke();
+  // floor
+  ctx.fillStyle="#E8C98A"; ctx.fillRect(0,floorY,W,H-floorY);
+  ctx.strokeStyle="#D9B06B"; ctx.lineWidth=2; for(let x=0;x<W;x+=110){ ctx.beginPath(); ctx.moveTo(x,floorY); ctx.lineTo(x,H); ctx.stroke(); } for(let y=floorY+16;y<H;y+=16){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.fillStyle="#EADFCE"; ctx.fillRect(0,floorY-6,W,8);
+  // danger zone stripes under the drop line
+  ctx.save(); ctx.beginPath(); ctx.rect(anchorX-70,floorY+2,140,H-floorY-2); ctx.clip(); ctx.fillStyle="rgba(255,232,138,.9)"; ctx.fillRect(anchorX-70,floorY+2,140,H); ctx.strokeStyle="#3D3356"; ctx.lineWidth=8; for(let x=anchorX-90;x<anchorX+90;x+=24){ ctx.beginPath(); ctx.moveTo(x,H); ctx.lineTo(x+40,floorY); ctx.stroke(); } ctx.restore();
+  rr(anchorX-38, floorY+28, 76, 16, 8, "rgba(255,255,255,.92)", "#EADFCE"); ctx.fillStyle="#6B5F80"; ctx.font="700 10px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("DROP ZONE", anchorX, floorY+40);
+  // tower (scaffold) on the right, deck at 3.00 m
+  const deckY=anchorY, deckL=anchorX, deckR=W-20;
+  ctx.strokeStyle="#8A7FA3"; ctx.lineWidth=7; [deckL+40, deckR-40].forEach(x=>{ ctx.beginPath(); ctx.moveTo(x,deckY+12); ctx.lineTo(x,floorY-4); ctx.stroke(); });
+  ctx.lineWidth=4; for(let y=deckY+60;y<floorY-30;y+=70){ ctx.beginPath(); ctx.moveTo(deckL+40,y); ctx.lineTo(deckR-40,y+40); ctx.moveTo(deckR-40,y); ctx.lineTo(deckL+40,y+40); ctx.stroke(); }
+  // ladder
+  ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(deckR-12,deckY+12); ctx.lineTo(deckR-12,floorY-4); ctx.moveTo(deckR-30,deckY+12); ctx.lineTo(deckR-30,floorY-4); ctx.stroke(); for(let y=deckY+30;y<floorY-10;y+=26){ ctx.beginPath(); ctx.moveTo(deckR-30,y); ctx.lineTo(deckR-12,y); ctx.stroke(); }
+  rr(deckL-6,deckY,deckR-deckL+6,14,5,"#C9B6FF","#9C84E6");
+  // railing (behind the jumper's standing spot)
+  ctx.strokeStyle="#9C84E6"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(deckL+70,deckY); ctx.lineTo(deckL+70,deckY-44); ctx.lineTo(deckR-50,deckY-44); ctx.lineTo(deckR-50,deckY); ctx.stroke();
+  // anchor hook at the deck edge
+  ctx.strokeStyle="#3D3356"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(anchorX,deckY+1,5,0,Math.PI*2); ctx.stroke(); ctx.fillStyle="#3D3356"; ctx.fillRect(anchorX-6,deckY-3,12,4);
+  // platform height tape
+  ctx.fillStyle="rgba(255,232,138,.95)"; ctx.fillRect(deckL+90,deckY-24,74,16); ctx.fillStyle="#6B5F80"; ctx.font="700 12px Fredoka, sans-serif"; ctx.textAlign="left"; ctx.fillText("3.00 m up", deckL+96, deckY-12);
+  // wall tape (floor referenced) 0 to 3.05 m
+  rr(tapeX-28, yOf(3.07), 54, floorY-yOf(3.07), 10, "#FFFBF5", "#EADFCE");
+  for(let cm=0; cm<=305; cm+=5){ const y=yOf(cm/100); const major=cm%50===0, mid=cm%10===0; ctx.strokeStyle=major?"#4A3F5C":(mid?"#8A7FA3":"#C6CFDC"); ctx.lineWidth=major?2.5:(mid?1.5:1); const len=major?22:(mid?14:7); ctx.beginPath(); ctx.moveTo(tapeX+24-len,y); ctx.lineTo(tapeX+24,y); ctx.stroke(); if(cm%10===0 && cm%50!==0){ ctx.fillStyle="#8A7FA3"; ctx.font="600 9px Fredoka, sans-serif"; ctx.textAlign="right"; ctx.fillText(cm+"", tapeX+24-len-3, y+3); } }
+  [0.5,1,1.5,2,2.5,3].forEach(h=>{ const y=yOf(h); ctx.fillStyle="rgba(255,232,138,.9)"; ctx.fillRect(tapeX-74,y-8,46,16); ctx.fillStyle="#6B5F80"; ctx.font="700 11px Fredoka, sans-serif"; ctx.textAlign="right"; ctx.fillText(h.toFixed(2)+" m", tapeX-32, y+4); });
+  ctx.fillStyle="#9A8FB0"; ctx.font="700 11px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("wall tape (cm)", tapeX, yOf(3.08)-8);
+  // phone on tripod
+  ctx.strokeStyle="#8A7FA3"; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(330,floorY); ctx.lineTo(350,floorY-120); ctx.moveTo(370,floorY); ctx.lineTo(350,floorY-120); ctx.moveTo(350,floorY-2); ctx.lineTo(350,floorY-120); ctx.stroke();
+  rr(328,floorY-200,44,76,8,"#3D3356","#2E2745"); rr(334,floorY-192,32,56,4,"#8FB8FF"); ctx.fillStyle="#E0556C"; ctx.beginPath(); ctx.arc(350,floorY-130,3,0,Math.PI*2); ctx.fill();
+  // kitchen scale + jumper tag
+  const j=jumper(); rr(190,floorY-22,120,26,8,"#fff","#EADFCE"); rr(212,floorY-18,76,16,5,"#3D3356");
+  ctx.fillStyle="#9FE6C4"; ctx.font="700 12px Nunito, monospace"; ctx.textAlign="center"; ctx.fillText(j? j.g+" g":"0 g", 250, floorY-6);
+  ctx.fillStyle="#9A8FB0"; ctx.font="700 10px Fredoka, sans-serif"; ctx.fillText("KITCHEN SCALE", 250, floorY-26);
+  if(j){ rr(186,floorY-64,128,30,8,"#FFF4B8","#F0DC8A"); ctx.fillStyle="#6B5F80"; ctx.font="700 11px Fredoka, sans-serif"; ctx.fillText(j.name, 250, floorY-52); ctx.font="600 10.5px Fredoka, sans-serif"; ctx.fillText("length "+Math.round(j.L*100)+" cm · "+fmt(j.g/1000,3)+" kg", 250, floorY-40); }
+}
+// tape measure hanging from the anchor, 0 at the hook, cm going down
+function drawTapeMeasure(len){
+  const top=anchorY, bot=Math.min(floorY-8, top+len*PX);
+  rr(tmX-13, top, 26, bot-top, 6, "#FFE88A", "#E8C94A");
+  for(let cm=0; cm*PX/100 < bot-top-4; cm+=5){ const y=top+cm*PX/100; const major=cm%50===0, mid=cm%10===0; ctx.strokeStyle= major?"#4A3F5C":(mid?"#8A7FA3":"#B9A86A"); ctx.lineWidth=major?2:1.2; const l=major?12:(mid?8:4); ctx.beginPath(); ctx.moveTo(tmX+11-l,y); ctx.lineTo(tmX+11,y); ctx.stroke(); if(cm%50===0&&cm>0){ ctx.fillStyle="#4A3F5C"; ctx.font="700 9px Fredoka, sans-serif"; ctx.textAlign="right"; ctx.fillText(cm+"", tmX+11-l-2, y+3); } }
+  ctx.fillStyle="#6B5F80"; ctx.font="700 9px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("0", tmX-3, top+10);
+  rr(tmX+18, top+18, 84, 16, 6, "#fff","#EADFCE"); ctx.fillStyle="#6B5F80"; ctx.font="700 9.5px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("TAPE MEASURE", tmX+60, top+30);
+}
+// 4x lens showing a scale around value cmC. mode "wall": cm up from the floor; mode "tm": cm down from the hook
+function drawLens(cmC, mode, label){
+  const x=16, y=92, w=250, hh=300, pxcm=24;
+  rr(x,y,w,hh,18,"#fff","#C9B6FF");
+  ctx.save(); ctx.beginPath(); ctx.rect(x+3,y+3,w-6,hh-6); ctx.clip();
+  ctx.fillStyle= mode==="tm" ? "#FFF2B8" : "#FFFBF5"; ctx.fillRect(x+70,y+28,86,hh-28);
+  const yc=y+28+(hh-28)/2, dir = mode==="tm" ? 1 : -1;        // tm: bigger cm is lower on screen
+  for(let cm=Math.floor(cmC-7); cm<=Math.ceil(cmC+7); cm++){
+    if(cm<0||cm>320) continue; const yy = yc + dir*(cm-cmC)*pxcm; const major=cm%10===0, mid=cm%5===0;
+    ctx.strokeStyle= major?"#4A3F5C":(mid?"#8A7FA3":"#C6CFDC"); ctx.lineWidth= major?3:2;
+    const len = major?48:(mid?34:20); ctx.beginPath(); ctx.moveTo(x+156-len,yy); ctx.lineTo(x+156,yy); ctx.stroke();
+    if(major||mid){ ctx.fillStyle="#4A3F5C"; ctx.font="700 "+(major?17:13)+"px Fredoka, Nunito, sans-serif"; ctx.textAlign="right"; ctx.fillText(cm+"", x+156-len-6, yy+6); }
+  }
+  ctx.fillStyle="rgba(143,184,255,.35)"; if(mode==="tm") ctx.fillRect(x+160,y+28,90,yc-y-28); else ctx.fillRect(x+160,yc,90,y+hh-yc);
+  ctx.setLineDash([6,5]); ctx.strokeStyle="#E0556C"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x+6,yc); ctx.lineTo(x+w-6,yc); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+  // title strip with a magnifying glass
+  rr(x,y,w,28,18,"#F3EEF9"); ctx.fillStyle="#F3EEF9"; ctx.fillRect(x+3,y+14,w-6,14);
+  ctx.strokeStyle="#6B5F80"; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x+18,y+13,6,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+22.5,y+17.5); ctx.lineTo(x+28,y+23); ctx.stroke();
+  ctx.fillStyle="#6B5F80"; ctx.font="700 12px Fredoka, sans-serif"; ctx.textAlign="left"; ctx.fillText("ZOOM 4×  ·  "+(mode==="tm"?"tape measure, cm from the hook":"wall tape, cm above the floor"), x+36, y+18);
+  ctx.fillStyle="#E0556C"; ctx.font="700 13px Fredoka, sans-serif"; ctx.fillText("← "+label, x+164, mode==="tm"? yc+20 : yc-10);
+}
+// the rubber band chain from the anchor down `len` metres (len >= L0). Each band is an ellipse scaled uniformly.
+function drawCord(len, swayX){
+  const n=nBands(); if(!n) return;
+  const L0=cordL0(), scale=len/L0; let y=anchorY; const x=anchorX+(swayX||0);
+  const seq=[]; for(let i=0;i<nLong;i++) seq.push("long"); for(let i=0;i<nShort;i++) seq.push("short");
+  // alternate for looks
+  const order=[]; let a=seq.filter(s=>s==="long"), b=seq.filter(s=>s==="short"); while(a.length||b.length){ if(a.length) order.push(a.pop()); if(b.length) order.push(b.pop()); }
+  ctx.lineWidth=3;
+  order.forEach(tp=>{ const B=BANDS[tp]; const hpx=B.L*PX*scale; const wpx=Math.max(4, (tp==="long"?12:9)/Math.sqrt(scale)); ctx.strokeStyle=B.edge; ctx.fillStyle=B.col; ctx.beginPath(); ctx.ellipse(x, y+hpx/2, wpx/2, hpx/2, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); y+=hpx-2; });
+  return {endY: anchorY+len*PX, endX:x};
+}
+// chibi jumper. (cx,cy) = centre of mass in px, ang 0 = upright (feet down), PI = head down. scale by jumper length.
+function drawJumper(cx, cy, ang, j){
+  const Lpx=j.L*PX; const s=Lpx/60;                 // the drawing is 60 units tall
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(ang); ctx.scale(s,s);
+  // feet (top of body at +30 when upright means feet at +30? no: upright feet are BELOW -> +y)
+  ctx.fillStyle="#3D3356"; rr(-12,24,10,7,3,"#3D3356"); rr(2,24,10,7,3,"#3D3356");
+  // legs
+  ctx.fillStyle=j.acc; ctx.fillRect(-10,8,8,18); ctx.fillRect(2,8,8,18);
+  // body
+  rr(-13,-12,26,24,8,j.col,j.acc);
+  // arms out
+  rr(-24,-10,10,20,5,j.col,j.acc); rr(14,-10,10,20,5,j.col,j.acc);
+  // head
+  ctx.fillStyle="#FFD9C2"; ctx.beginPath(); ctx.arc(0,-22,13,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#3D3356"; ctx.beginPath(); ctx.arc(-4,-24,1.8,0,Math.PI*2); ctx.arc(4,-24,1.8,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#3D3356"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(0,-19,4,0.2,Math.PI-0.2); ctx.stroke();
+  // hat / accessory
+  ctx.fillStyle=j.acc;
+  if(j.hat==="helmet"){ ctx.beginPath(); ctx.arc(0,-24,15,Math.PI,0); ctx.fill(); ctx.fillStyle="#fff"; ctx.fillRect(-15,-25,30,3); }
+  if(j.hat==="cape"){ ctx.beginPath(); ctx.moveTo(-13,-10); ctx.lineTo(13,-10); ctx.lineTo(18,20); ctx.lineTo(-18,20); ctx.closePath(); ctx.globalAlpha=.9; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle="#FFE88A"; ctx.beginPath(); ctx.arc(0,-2,4,0,Math.PI*2); ctx.fill(); }
+  if(j.hat==="spikes"){ for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(i*7-4,-33); ctx.lineTo(i*7,-42); ctx.lineTo(i*7+4,-33); ctx.closePath(); ctx.fill(); } }
+  if(j.hat==="antenna"){ ctx.fillRect(-1.5,-44,3,10); ctx.fillStyle="#E0556C"; ctx.beginPath(); ctx.arc(0,-46,3.5,0,Math.PI*2); ctx.fill(); ctx.fillStyle=j.acc; ctx.fillRect(-13,-24,26,3); }
+  if(j.hat==="crown"){ ctx.fillStyle="#FFE88A"; ctx.beginPath(); ctx.moveTo(-10,-33); ctx.lineTo(-10,-42); ctx.lineTo(-5,-36); ctx.lineTo(0,-44); ctx.lineTo(5,-36); ctx.lineTo(10,-42); ctx.lineTo(10,-33); ctx.closePath(); ctx.fill(); }
+  if(j.hat==="ears"){ ctx.beginPath(); ctx.arc(-10,-32,5,0,Math.PI*2); ctx.arc(10,-32,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#FFD9C2"; ctx.beginPath(); ctx.arc(-10,-32,2.5,0,Math.PI*2); ctx.arc(10,-32,2.5,0,Math.PI*2); ctx.fill(); }
+  ctx.restore();
+}
+// Where is the jumper? returns {cx,cy,ang,headH(m)} for the static hang or a drop time t
+function jumperPose(t){
+  const j=jumper(); if(!j) return null; const Lj=j.L;
+  if(view==="cal"){
+    if(hang!=="jumper") return null;
+    const len = cordL0()+calStretch(); const ank = A - len;    // ankle height
+    return {cx:anchorX, cy:yOf(ank - Lj/2), ang:Math.PI, headH: ank - Lj, ankH:ank};
+  }
+  if(!drop || t==null){ // standing on the deck edge
+    return {cx:anchorX+14, cy:yOf(A + Lj/2), ang:0, headH:A+Lj, ankH:A, standing:true};
+  }
+  const st=stateAt(t); const s=st.s, d0=drop.d0;
+  const f = Math.min(1, s/d0);                                 // free-fall progress -> flips head down
+  const ang = Math.PI*f;
+  const cmH = A + Lj/2 - s;                                    // centre of mass height
+  // ankle position: CoM + (Lj/2) along the body "feet" direction. upright feet are down (ang 0 -> feet below)
+  const ankH = cmH - (Lj/2)*Math.cos(ang), ankX = anchorX + (Lj/2)*PX*Math.sin(ang)*0;
+  const headH = cmH + (Lj/2)*Math.cos(ang);
+  return {cx:anchorX, cy:yOf(cmH), ang, headH, ankH, s, v:st.v};
+}
+
+/* ---------- Hooke, the safety engineer guide ---------- */
+function hookeLine(){
+  if(hookeSay) return hookeSay;
+  if(freeplay) return "Free play! Change the jumper or the cord and drop as many times as you like.";
+  if(finished) return "Report filed. Click Finish for your code, or open free play.";
+  if(!jumperId) return "Hi! I'm Robert Hooke. Pick a jumper, then chain some rubber bands into a cord.";
+  if(!nBands()) return "Now build the cord: add long and short bands with the + buttons.";
+  if(view==="cal"){
+    if(!cal.done){ if(hang==="none") return "Hang the cord ALONE from the hook and read its length on the tape measure."; if(hang==="cord") return "That is L₀. Read where the bottom loop sits, then hang the jumper on it."; return "Stretched! Read Lₛ, then k = m g over the stretch. My law, by the way."; }
+    if(!pred.done) return "Calibrated! Now PREDICT on your sheet: PE_g, the stretch x, and the gap to the floor.";
+    if(!pred.cleared) return "Your math says this cord is not safe yet. Change the bands and calibrate again.";
+    return "Cleared for launch! Head to the platform when you are ready.";
+  }
+  if(anim.on) return "Filming in slow motion. Watch the energy bars swap!";
+  if(drop && lowRead==null) return "Scrub to the LOWEST point and read the head's height on the wall tape.";
+  if(drop) return drop.crash? "Ouch. The cord was too long. Your report still counts: write up what went wrong." : "Stopped! Compare the real stop point with your prediction.";
+  return "One official drop. Predict first, jump second. That is what real engineers do.";
+}
+function drawHooke(line, t){
+  const x=92, fy=floorY-2, bob=Math.sin((t||0)*6)*1.5;
+  const skin="#FFD9C2", coat="#5EC79A", coatD="#3E9C74", hair="#6B4A2B", hairD="#4E3520";
+  ctx.save(); ctx.translate(x, fy+bob);
+  ctx.fillStyle="rgba(74,63,92,.12)"; ctx.beginPath(); ctx.ellipse(0,2,34,6,0,0,Math.PI*2); ctx.fill();
+  rr(-22,-10,18,10,4,"#3D3356"); rr(4,-10,18,10,4,"#3D3356");
+  ctx.fillStyle="#fff"; ctx.fillRect(-16,-30,10,22); ctx.fillRect(6,-30,10,22);
+  rr(-30,-96,60,70,16,coat,coatD);
+  ctx.fillStyle=coatD; ctx.fillRect(-2,-80,4,46);
+  ctx.fillStyle="#FFE88A"; [[-10,-70],[-10,-56],[-10,-42],[10,-70],[10,-56],[10,-42]].forEach(([bx,by])=>{ctx.beginPath();ctx.arc(bx,by,2.2,0,Math.PI*2);ctx.fill();});
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(-10,-96); ctx.lineTo(10,-96); ctx.lineTo(0,-72); ctx.closePath(); ctx.fill();
+  rr(-44,-90,16,42,8,coat,coatD); rr(28,-90,16,42,8,coat,coatD);
+  ctx.fillStyle=skin; ctx.beginPath(); ctx.arc(-36,-46,8,0,Math.PI*2); ctx.arc(36,-46,8,0,Math.PI*2); ctx.fill();
+  // a little coil spring in the right hand
+  ctx.strokeStyle="#8A7FA3"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(44,-40); for(let i=0;i<7;i++){ ctx.lineTo(44+(i%2?8:-8), -44-i*5); } ctx.lineTo(44,-80); ctx.stroke();
+  // long dark curls
+  ctx.fillStyle=hair; ctx.strokeStyle=hairD; ctx.lineWidth=2;
+  [[-30,-130,14],[-34,-110,13],[-32,-90,12],[-30,-72,11],[30,-130,14],[34,-110,13],[32,-90,12],[30,-72,11],[-16,-146,15],[0,-152,16],[16,-146,15],[-26,-150,10],[26,-150,10]].forEach(([cx,cy,r])=>{ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.stroke();});
+  ctx.fillStyle=skin; ctx.beginPath(); ctx.arc(0,-122,27,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="rgba(240,138,180,.45)"; ctx.beginPath(); ctx.arc(-14,-114,5,0,Math.PI*2); ctx.arc(14,-114,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#3D3356"; ctx.beginPath(); ctx.arc(-9,-124,3,0,Math.PI*2); ctx.arc(9,-124,3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#3D3356"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,-116,7,0.25,Math.PI-0.25); ctx.stroke();
+  rr(-26,-4,52,16,8,"#FFF4B8","#F0DC8A"); ctx.fillStyle="#6B5F80"; ctx.font="700 10px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("HOOKE", 0, 8);
+  ctx.restore();
+  // speech bubble above and to the right
+  const bx=140, bw=236, pad=12; ctx.font="600 14px Fredoka, Nunito, sans-serif";
+  const words=line.split(" "), lines=[]; let cur="";
+  for(const w of words){ const tst=cur?cur+" "+w:w; if(ctx.measureText(tst).width>bw-pad*2){ lines.push(cur); cur=w; } else cur=tst; } if(cur) lines.push(cur);
+  const bh=lines.length*19+pad*2; const by=fy-176-bh+bob;
+  rr(bx,by,bw,bh,14,"#fff","#C9B6FF");
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+10,by+bh-12); ctx.lineTo(x+24,fy-150+bob); ctx.lineTo(bx+34,by+bh-2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx+10,by+bh-12); ctx.lineTo(x+24,fy-150+bob); ctx.lineTo(bx+34,by+bh-2); ctx.stroke();
+  ctx.fillStyle="#fff"; ctx.fillRect(bx+12,by+bh-6,20,8);
+  ctx.fillStyle="#4A3F5C"; ctx.textAlign="left"; lines.forEach((l,i)=>ctx.fillText(l, bx+pad, by+pad+14+i*19));
+}
+
+function draw(t, opts={}){
+  drawRoom();
+  const j=jumper();
+  if(view==="cal"){
+    if(hang!=="none" && nBands()){
+      const len = hang==="cord" ? cordL0() : cordL0()+calStretch();
+      const tooLong = hang==="jumper" && (len + j.L) > A - 0.01;
+      drawTapeMeasure(Math.min(A-0.05, len+0.3));
+      if(tooLong){ // the jumper is resting on the floor: nothing to measure
+        const slackLen = A - j.L; drawCord(slackLen, 0); drawJumper(anchorX, yOf(j.L/2), 0, j);
+        rr(anchorX-250, floorY-j.L*PX-78, 236, 26, 10, "rgba(255,255,255,.95)", "#FFB7D5"); ctx.fillStyle="#C23B52"; ctx.font="700 13px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("Cord too long: the jumper is on the floor", anchorX-132, floorY-j.L*PX-60);
+      } else {
+        const c=drawCord(len);
+        if(hang==="jumper"){ const p=jumperPose(); drawJumper(p.cx,p.cy,p.ang,j); }
+        drawLens(len*100, "tm", hang==="cord"?"bottom loop":"ankles");
+        ctx.setLineDash([8,6]); ctx.strokeStyle="#E0556C"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(anchorX-20, c.endY); ctx.lineTo(tmX+30, c.endY); ctx.stroke(); ctx.setLineDash([]);
+      }
+    } else if(j){ const p=jumperPose(null); }
+    if(j && hang==="none"){ /* jumper waits beside the scale */ drawJumper(250, floorY-64-j.L*PX/2-2, 0, j); }
+    drawHooke(hookeLine(), t);
+  } else {
+    const p=jumperPose(drop? t : null);
+    if(p && p.standing){ // cord coiled at the hook (slack bundle), jumper standing
+      if(nBands()){ ctx.strokeStyle="#F09A6B"; ctx.lineWidth=3; for(let i=0;i<4;i++){ ctx.beginPath(); ctx.ellipse(anchorX-8+i*3, anchorY+26+i*2, 9, 14, 0.3*i, 0, Math.PI*2); ctx.stroke(); } }
+      drawJumper(p.cx,p.cy,0,j);
+    } else if(p){
+      const ankY=yOf(p.ankH);
+      if(p.s < drop.d0){ // slack cord: a sagging curve from the hook to the ankles
+        ctx.strokeStyle="#F09A6B"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(anchorX, anchorY); const slack=(drop.d0-p.s)*PX; ctx.bezierCurveTo(anchorX-40-slack*0.3, anchorY+slack*0.5, anchorX-40-slack*0.3, ankY-slack*0.3, anchorX, ankY); ctx.stroke();
+      } else { drawCord(p.s - (drop.Lj - 0) + 0, 0); /* cord from hook to ankles: length = s - Lj */ }
+      drawJumper(p.cx,p.cy,p.ang,j);
+      if(opts.guide){ const hy=yOf(p.headH); ctx.setLineDash([8,6]); ctx.strokeStyle="#E0556C"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(tapeX-30, hy); ctx.lineTo(anchorX+40, hy); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle="#E0556C"; ctx.font="700 12px Fredoka, sans-serif"; ctx.textAlign="left"; ctx.fillText("top of head", anchorX+44, hy+4); drawLens(Math.max(0,p.headH*100), "wall", "head"); }
+      if(drop.crash && t>=drop.tBottom-0.02){ ctx.fillStyle="#E0556C"; ctx.font="800 26px Fredoka, sans-serif"; ctx.textAlign="center"; ctx.fillText("BONK!", anchorX, floorY-j.L*PX-30); ctx.strokeStyle="#F09A6B"; ctx.lineWidth=3; for(let i=0;i<6;i++){ const a=Math.PI+i*Math.PI/5; ctx.beginPath(); ctx.moveTo(anchorX+Math.cos(a)*20, floorY-4+Math.sin(a)*6); ctx.lineTo(anchorX+Math.cos(a)*44, floorY-4+Math.sin(a)*16); ctx.stroke(); } }
+    }
+    drawHooke(hookeLine(), t);
+    rr(W-150, floorY+12, 136, 26, 8, "rgba(255,255,255,.9)", "#EADFCE"); ctx.fillStyle="#6B5F80"; ctx.font="700 13px Nunito, monospace"; ctx.textAlign="center"; ctx.fillText("t = "+fmt(t||0,3)+" s", W-82, floorY+30);
+    updateBars(p, t);
+  }
+}
+function updateBars(p, t){
+  const set=(id,f)=>$(id).style.height=(Math.max(0,Math.min(1,f))*100)+"%";
+  if(!drop || !p || p.standing){ set("bPE",drop?1:0); set("bKE",0); set("bEL",0); set("bTH",0); ["vPE","vKE","vEL","vTH"].forEach(i=>$(i).textContent=""); return; }
+  const m=drop.m, E0=drop.E0; const cm = A + drop.Lj/2 - p.s; const PE=m*G*cm, KE=0.5*m*p.v*p.v, x=Math.max(0,p.s-drop.d0), EL=0.5*drop.k*x*x, TH=Math.max(0,E0-PE-KE-EL);
+  set("bPE",PE/E0); set("bKE",KE/E0); set("bEL",EL/E0); set("bTH",TH/E0);
+  const show = lowRead!=null || freeplay;
+  $("vPE").textContent=show?fmt(PE,2)+" J":""; $("vKE").textContent=show?fmt(KE,2)+" J":""; $("vEL").textContent=show?fmt(EL,2)+" J":""; $("vTH").textContent=show?fmt(TH,2)+" J":"";
+}
+
+/* ---------- calibration UI ---------- */
+function setHang(h){ if(!nBands()||!jumperId){ hookeSay = !jumperId? "Pick a jumper first." : "Add some bands first."; draw(0); return; } hookeSay=null; hang=h; if(h==="cord"){ $("inLo").disabled=false; } if(h==="jumper"){ const tooLong=(cordL0()+calStretch()+jumper().L) > A-0.01; $("inLs").disabled=tooLong; $("inK").disabled=tooLong; if(tooLong){ hookeSay="That cord is so long the jumper sits on the floor. Take bands off and hang it again."; $("calMsg").innerHTML='<div class="warn">The jumper is resting on the floor, so there is no stretched length to read. Remove some bands.</div>'; } else $("calMsg").innerHTML=""; } $("btnCal").disabled = !(hang!=="none"); $("stageHint").textContent = h==="none" ? "Cord taken down." : (h==="cord" ? "Cord alone. The lens follows the bottom loop. Type L₀ in meters." : "Jumper hanging still. The lens follows the ankles. Type Lₛ, then k."); draw(0); save(); }
+$("btnHangCord").onclick=()=>setHang("cord"); $("btnHangJumper").onclick=()=>setHang("jumper"); $("btnTakeDown").onclick=()=>setHang("none");
+function resetCal(reason){ cal={Lo:null,Ls:null,k:null,done:false}; pred={PE:null,x:null,gap:null,done:false,cleared:false}; hang="none"; ["inLo","inLs","inK","inPE","inX","inGap"].forEach(i=>{$(i).value=""; $(i).disabled=true;}); $("btnCal").disabled=true; $("btnPred").disabled=true; $("calMsg").innerHTML=""; $("predMsg").innerHTML= reason? '<div class="warn">'+reason+'</div>':""; $("tagGo").classList.add("hide"); $("predCard").classList.add("locked"); if(view==="drop") toCalView(); renderSteps(); renderLedger(); }
+$("btnCal").onclick=()=>{
+  const Lo=parseFloat($("inLo").value), Ls=parseFloat($("inLs").value), k=parseFloat($("inK").value);
+  const tLo=cordL0(), tLs=cordL0()+calStretch(), tK=cordK(), m=massKg();
+  const fixm = v => v>5 ? v/100 : v;    // typed centimetres
+  const okLo = !isNaN(Lo) && Math.abs(fixm(Lo)-tLo)<=0.0101, okLs = !isNaN(Ls) && Math.abs(fixm(Ls)-tLs)<=0.0101;
+  let msg=[];
+  if(!okLo) msg.push(isNaN(Lo)?"Type L<sub>o</sub> (hang the cord alone and read the lens).":"L<sub>o</sub> is off. Hang the cord ALONE and read the tape at the bottom loop.");
+  if(!okLs) msg.push(isNaN(Ls)?"Type L<sub>s</sub> (hang the jumper and read the lens).":"L<sub>s</sub> is off. With the jumper hanging, read the tape at the ankles.");
+  if(okLo&&okLs){ const xs=fixm(Ls)-fixm(Lo); const kExp = m*G/xs; const okK = !isNaN(k) && Math.abs(k-kExp)<=Math.max(0.05*kExp,0.05); if(!okK){ msg.push(isNaN(k)?"Now compute k = m g / x with x = L<sub>s</sub> − L<sub>o</sub> = "+fmt(xs,2)+" m.":"k is off. Use m in <b>kilograms</b> ("+fmt(m,3)+" kg), g = 9.8, and x = L<sub>s</sub> − L<sub>o</sub> = "+fmt(xs,2)+" m. Expect something near "+Math.round(kExp)+" N/m."); } else { cal={Lo:fixm(Lo),Ls:fixm(Ls),k:k,done:true}; } }
+  if(cal.done){ hookeSay=null; $("calMsg").innerHTML='<div class="ok">Calibrated! L<sub>o</sub> = '+fmt(cal.Lo,2)+' m, L<sub>s</sub> = '+fmt(cal.Ls,2)+' m, x = '+fmt(cal.Ls-cal.Lo,2)+' m, k = '+fmt(cal.k,1)+' N/m. Write them on your sheet, then predict.</div>'; ["inLo","inLs","inK"].forEach(i=>$(i).disabled=true); $("btnCal").disabled=true; $("predCard").classList.remove("locked"); ["inPE","inX","inGap"].forEach(i=>$(i).disabled=false); $("btnPred").disabled=false; }
+  else { hookeSay="Not quite. Read the lens carefully: the dashed line is the measurement."; $("calMsg").innerHTML='<div class="bad">'+msg.join("<br>")+'</div>'; }
+  draw(0); renderSteps(); renderLedger(); save();
+};
+$("btnCalHint").onclick=()=>{ $("calMsg").innerHTML='<div class="note">Hint: the tape measure starts at 0 at the hook. The lens shows the cm tick the dashed line touches: divide by 100 for meters. L<sub>s</sub> − L<sub>o</sub> is the stretch x. Then k = (mass in kg × 9.8) ÷ x.</div>'; };
+
+/* ---------- prediction UI ---------- */
+$("btnPred").onclick=()=>{
+  if(!cal.done) return;
+  const m=massKg(), Lj=jumper().L; const PE=parseFloat($("inPE").value), x=parseFloat($("inX").value), gap=parseFloat($("inGap").value);
+  const PEexp=m*G*A, xExp=Math.sqrt(2*PEexp/cal.k), gapExp=(A-(cal.Lo+xExp+Lj))*100;
+  const okPE=!isNaN(PE)&&Math.abs(PE-PEexp)<=0.03*PEexp, okX=!isNaN(x)&&Math.abs(x-xExp)<=0.03*xExp, okG=!isNaN(gap)&&Math.abs(gap-gapExp)<=2.5;
+  let msg=[];
+  if(!okPE) msg.push("PE<sub>g</sub> is off. PE<sub>g</sub> = m × 9.8 × 3.0 with m in kilograms ("+fmt(m,3)+" kg).");
+  if(!okX) msg.push("x is off. Set ½ k x² = PE<sub>g</sub> with YOUR k = "+fmt(cal.k,1)+" N/m, so x = √(2 PE<sub>g</sub> / k).");
+  if(!okG) msg.push("The gap is off. Gap = 3.00 − (L<sub>o</sub> + x + jumper length) = 3.00 − ("+fmt(cal.Lo,2)+" + x + "+fmt(Lj,2)+"), in centimeters.");
+  if(msg.length){ hookeSay="The prediction does not balance yet. Check units: kg, meters, joules."; $("predMsg").innerHTML='<div class="bad">'+msg.join("<br>")+'</div>'; draw(0); return; }
+  pred={PE,x,gap,done:true,cleared:(gap>=0 && gap<=5)};
+  hookeSay=null;
+  if(pred.cleared){ $("predMsg").innerHTML='<div class="ok">Prediction checks out: x = '+fmt(x,2)+' m, head stops about <b>'+Math.round(gap)+' cm</b> above the floor. <b>CLEARED FOR LAUNCH.</b> Tip: real rubber stops a little higher than the math, so a small predicted gap is the safe bet.</div>'; $("tagGo").classList.remove("hide"); $("stageHint").textContent="Cleared. Take the jumper up to the platform."; $("calControls").insertAdjacentHTML("beforeend",'<button class="btn peach" id="btnToPlatform">Go to the platform →</button>'); $("btnToPlatform").onclick=toDropView; }
+  else { const over = gap<0; $("predMsg").innerHTML='<div class="warn">Math checks out, but this cord is <b>not safe</b>: your prediction says the head '+(over?'hits the floor by about '+Math.abs(Math.round(gap))+' cm':'stops about '+Math.round(gap)+' cm up, outside the 5 cm window')+'. '+(over?'Take bands OFF':'Add bands')+' (a short band is a fine adjustment), then calibrate the new cord.</div>'; $("stageHint").textContent="Not cleared. Change the cord and calibrate again."; }
+  ["inPE","inX","inGap"].forEach(i=>$(i).disabled=true); $("btnPred").disabled=true;
+  draw(0); renderSteps(); renderLedger(); save();
+};
+$("btnPredHint").onclick=()=>{ $("predMsg").innerHTML='<div class="note">Hint: PE<sub>g</sub> = m g h with h = 3.0 m. At the bottom all of it is elastic: ½ k x² = PE<sub>g</sub>, so x = √(2 PE<sub>g</sub> ÷ k). The head stops at 3.00 − L<sub>o</sub> − x − (jumper length). No scale? Notice m cancels: x = √(2 h x<sub>cal</sub>).</div>'; };
+
+/* ---------- views ---------- */
+function toDropView(){ view="drop"; hang="none"; $("calControls").classList.add("hide"); $("dropControls").classList.remove("hide"); $("btnBackCal").classList.toggle("hide", !!drop && !freeplay); $("btnDrop").disabled = !(pred.cleared || freeplay) || (!!drop && !freeplay); $("dropHint").textContent = freeplay ? "Free play: drop as often as you like." : "Jumper on the platform at 3.00 m. ONE drop counts. Ready?"; draw(0); save(); }
+function toCalView(){ if(drop && !freeplay) return; view="cal"; $("calControls").classList.remove("hide"); $("dropControls").classList.add("hide"); $("scrubBox").classList.add("hide"); const b=$("btnToPlatform"); if(b && !pred.cleared) b.remove(); draw(0); save(); }
+$("btnBackCal").onclick=toCalView;
+
+/* ---------- the drop ---------- */
+function startDrop(){
+  if(!jumperId||!nBands()) return;
+  if(!freeplay && drop) return;
+  hookeSay=null; drop=makeDrop(); if(!freeplay) lowRead=null;
+  anim.on=true; anim.t0=performance.now(); scrubT=0;
+  $("tagRec").classList.remove("hide"); $("btnDrop").disabled=true; $("btnReplay").disabled=true; $("scrubBox").classList.add("hide"); $("btnBackCal").classList.add("hide");
+  $("dropHint").textContent="Recording in slow motion…"; $("jumpCard").classList.add("locked"); $("buildCard").classList.add("locked");
+  renderSteps(); save(); requestAnimationFrame(tick);
+}
+function tick(now){ if(!anim.on) return; const t=(now-anim.t0)/1000*SLOW; if(t>=drop.tEnd){ anim.on=false; onRecorded(); draw(drop.tEnd); return; } draw(t); requestAnimationFrame(tick); }
+function onRecorded(){
+  $("tagRec").classList.add("hide"); $("btnReplay").disabled=false;
+  if(freeplay){ $("btnDrop").disabled=false; $("jumpCard").classList.remove("locked"); $("buildCard").classList.remove("locked"); $("dropHint").textContent = drop.crash? "Crash. Change the cord and try again." : "Stopped "+Math.round(drop.lowTrue*100)+" cm above the floor. Change anything and drop again."; $("scrubBox").classList.remove("hide"); $("scrub").value=0; setScrub(0); return; }
+  $("scrubBox").classList.remove("hide"); $("scrub").value=0; setScrub(0);
+  $("readCard").classList.remove("hide"); $("inLow").disabled=false; $("btnLow").disabled=false;
+  $("dropHint").textContent="Video saved. Scrub it to the lowest point and read the wall tape.";
+  renderSteps(); save();
+}
+function setScrub(v){ scrubT=(v/1000)*drop.tEnd; $("scrubT").textContent="t = "+fmt(scrubT,3)+" s"; draw(scrubT,{guide:true}); }
+$("scrub").addEventListener("input",e=>setScrub(+e.target.value));
+document.addEventListener("keydown",e=>{ if($("scrubBox").classList.contains("hide")||document.activeElement.tagName==="INPUT") return; if(e.key==="ArrowLeft"||e.key==="ArrowRight"){ const el=$("scrub"); el.value=Math.max(0,Math.min(1000,+el.value+(e.key==="ArrowRight"?2:-2))); setScrub(+el.value); e.preventDefault(); } });
+$("btnDrop").onclick=startDrop;
+$("btnReplay").onclick=()=>{ if(!drop) return; anim.on=true; anim.t0=performance.now(); $("tagRec").classList.remove("hide"); requestAnimationFrame(function rp(now){ if(!anim.on) return; const t=(now-anim.t0)/1000*SLOW; if(t>=drop.tEnd){ anim.on=false; $("tagRec").classList.add("hide"); draw(drop.tEnd,{guide:true}); return; } draw(t); requestAnimationFrame(rp); }); };
+
+/* ---------- reading the stop point ---------- */
+$("btnLow").onclick=()=>{
+  let v=parseFloat($("inLow").value); if(isNaN(v)){ $("lowMsg").innerHTML='<div class="bad">Type the lowest height of the head first.</div>'; return; }
+  if(v<=3.2 && String($("inLow").value).includes(".")) v=v*100;   // typed meters
+  const tru=drop.lowTrue*100;
+  if(drop.crash){ if(v<=1){ accept(0);} else { $("lowMsg").innerHTML='<div class="bad">Look again at the end of the video.</div>'; } return; }
+  if(Math.abs(v-tru)<=1.01) accept(Math.round(v)); else { const hi=v>tru; hookeSay='Not quite. You read '+(hi?'too HIGH':'too LOW')+'. Find the frame where the jumper stops falling.'; draw(scrubT,{guide:true}); $("lowMsg").innerHTML='<div class="bad">That is not the lowest point. Scrub more carefully: you read '+(hi?'too high':'too low')+'. Use the dashed line at the TOP of the head.</div>'; }
+  function accept(cm){ lowRead=cm; hookeSay=null; finished=true; $("inLow").disabled=true; $("btnLow").disabled=true; const gap=cm, inWin=!drop.crash&&gap<=5; $("lowMsg").innerHTML= drop.crash? '<div class="bad">Recorded: the head hit the floor. Survived: NO. Your prediction said '+Math.round(pred.gap)+' cm. Write the audit on your sheet.</div>' : '<div class="'+(inWin?'ok':'warn')+'">Recorded: lowest point '+cm+' cm above the floor. Survived: YES. '+(inWin?'Inside the 5 cm window!':'Outside the 5 cm window (too high).')+' Prediction was '+Math.round(pred.gap)+' cm, so your accuracy is '+Math.abs(cm-Math.round(pred.gap))+' cm.</div>'; $("finishBtn").disabled=false; $("dropHint").textContent="Report ready. Click Finish for your code."; draw(scrubT,{guide:true}); renderSteps(); renderLedger(); save(); }
+};
+$("btnLowHint").onclick=()=>{ $("lowMsg").innerHTML='<div class="note">Hint: move the slider slowly until the jumper stops going down and starts coming back up. That frame is the lowest point. Read the wall tape where the dashed line touches it, in centimeters above the floor. Arrow keys nudge the slider.</div>'; };
+
+/* ---------- UI render ---------- */
+function jumperSVG(j){ return '<svg viewBox="0 0 44 56"><rect x="14" y="20" width="16" height="18" rx="5" fill="'+j.col+'" stroke="'+j.acc+'" stroke-width="2"/><rect x="5" y="22" width="8" height="14" rx="3" fill="'+j.col+'" stroke="'+j.acc+'" stroke-width="2"/><rect x="31" y="22" width="8" height="14" rx="3" fill="'+j.col+'" stroke="'+j.acc+'" stroke-width="2"/><rect x="15" y="38" width="6" height="12" fill="'+j.acc+'"/><rect x="23" y="38" width="6" height="12" fill="'+j.acc+'"/><circle cx="22" cy="12" r="9" fill="#FFD9C2"/><circle cx="19" cy="11" r="1.3" fill="#3D3356"/><circle cx="25" cy="11" r="1.3" fill="#3D3356"/><path d="M19 15q3 3 6 0" stroke="#3D3356" stroke-width="1.3" fill="none"/><path d="M13 12a9 9 0 0 1 18 0z" fill="'+j.acc+'"/></svg>'; }
+function refreshShelf(){
+  const lock = calLocked || !!drop;
+  $("shelf").innerHTML = JUMPERS.map(j=>'<div class="jump'+(j.id===jumperId?' active':'')+(lock?' lockedj':'')+'" data-id="'+j.id+'">'+jumperSVG(j)+'<div class="nm">'+j.name+'</div><div class="fm">'+j.g+' g · '+Math.round(j.L*100)+' cm</div></div>').join("");
+  [...$("shelf").children].forEach(el=>el.onclick=()=>{ if(jumperId===el.dataset.id) return; jumperId=el.dataset.id; const j=jumper(); $("tagJ").textContent=j.name; $("tagM").textContent=j.g+" g = "+fmt(j.g/1000,3)+" kg"; $("jumpNote").innerHTML="<b>"+j.name+"</b>: mass <b>"+j.g+" g</b> = <b>"+fmt(j.g/1000,3)+" kg</b>, length <b>"+Math.round(j.L*100)+" cm</b> from ankles to the top of the head. Write both on your sheet."; if(cal.done||hang!=="none") resetCal("New jumper, so the calibration starts over."); hookeSay=null; refreshShelf(); renderSteps(); draw(0); save(); });
+  $("lCount").textContent=nLong; $("sCount").textContent=nShort; $("tagCord").textContent=nBands()+" band"+(nBands()===1?"":"s");
+  ["lMinus","lPlus","sMinus","sPlus"].forEach(i=>$(i).disabled = !!drop && !freeplay);
+  $("lMinus").disabled = $("lMinus").disabled || nLong===0; $("sMinus").disabled = $("sMinus").disabled || nShort===0; $("lPlus").disabled=$("lPlus").disabled||nLong>=26; $("sPlus").disabled=$("sPlus").disabled||nShort>=12;
+}
+function changeBands(dl,ds){ nLong=Math.max(0,Math.min(26,nLong+dl)); nShort=Math.max(0,Math.min(12,nShort+ds)); if(cal.done||hang!=="none"||pred.done) resetCal("You changed the cord, so measure it again."); hookeSay=null; refreshShelf(); renderSteps(); draw(0); save(); }
+$("lMinus").onclick=()=>changeBands(-1,0); $("lPlus").onclick=()=>changeBands(1,0); $("sMinus").onclick=()=>changeBands(0,-1); $("sPlus").onclick=()=>changeBands(0,1);
+function renderSteps(){
+  const items=[
+    ["Pick a jumper","Mass and length go on your sheet.", !!jumperId],
+    ["Build the cord","Chain long and short bands.", nBands()>0],
+    ["Calibrate","Hang it, read L₀ and Lₛ, compute k.", cal.done],
+    ["Predict","PE_g, stretch x, and the gap to the floor.", pred.done && pred.cleared],
+    ["Official drop","One drop from 3.00 m, filmed in slow motion.", !!drop],
+    ["Read the stop point","Lowest point of the head on the wall tape.", lowRead!=null],
+  ];
+  let nowIdx=items.findIndex(i=>!i[2]);
+  $("steps").innerHTML=items.map((it,i)=>'<div class="step'+(it[2]?' done':(i===nowIdx?' now':''))+'"><div class="n">'+(it[2]?'✓':i+1)+'</div><div class="t"><b>'+it[0]+'</b>'+it[1].replace("PE_g","PE<sub>g</sub>")+'</div></div>').join("");
+  const done=items.filter(i=>i[2]).length; $("progTxt").textContent=done+" / 6 steps"; $("dots").innerHTML=items.map(i=>'<span class="dot'+(i[2]?' on':'')+'"></span>').join("");
+}
+function renderLedger(){
+  const j=jumper(); const hid='<span class="hid">···</span>';
+  const rows=[
+    ["Jumper", j? j.name : hid],
+    ["Mass m", j? fmt(j.g/1000,3)+" kg" : hid],
+    ["Jumper length", j? fmt(j.L,2)+" m" : hid],
+    ["Cord", nBands()? nLong+" long + "+nShort+" short" : hid],
+    ["L<sub>o</sub> / L<sub>s</sub>", cal.done? fmt(cal.Lo,2)+" / "+fmt(cal.Ls,2)+" m" : hid],
+    ["k", cal.done? fmt(cal.k,1)+" N/m" : hid],
+    ["PE<sub>g</sub>", pred.done? fmt(pred.PE,2)+" J" : hid],
+    ["Predicted x", pred.done? fmt(pred.x,2)+" m" : hid],
+    ["Predicted gap", pred.done? Math.round(pred.gap)+" cm" : hid],
+    ["Actual lowest point", lowRead!=null? lowRead+" cm" : hid],
+    ["Survived?", lowRead!=null? (drop.crash?"NO":"YES"+(lowRead<=5?" · in window":" · too high")) : hid],
+    ["Accuracy", lowRead!=null&&pred.done? Math.abs(lowRead-Math.round(pred.gap))+" cm" : hid],
+  ];
+  $("ledger").innerHTML=rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join("");
+}
+
+/* ---------- code + report ---------- */
+function makeCode(){
+  const ji=JUMPERS.findIndex(j=>j.id===jumperId); const o = drop.crash? "X" : (lowRead<=5? "S" : "H");
+  const body = ji+String(nLong).padStart(2,"0")+String(nShort).padStart(2,"0")+"-"+String(lowRead).padStart(3,"0")+o;
+  const chk=String.fromCharCode(65 + ((ji*5+nLong*7+nShort*11+lowRead*3+nameHash(studentName)) % 26));
+  return "BUNGEE-"+body+chk;
+}
+$("finishBtn").onclick=()=>{
+  if(lowRead==null) return; const j=jumper();
+  const inWin=!drop.crash&&lowRead<=5;
+  $("repWho").innerHTML="<b>"+studentName+"</b> · platform 3.00 m · g = 9.8 m/s² · "+new Date().toLocaleDateString();
+  $("repBody").innerHTML='<div class="verdict '+(drop.crash?'crash':(inWin?'good':'meh'))+'">'+(drop.crash?'💥 The jumper hit the floor. Survived: NO':(inWin?'✅ Survived, '+lowRead+' cm above the floor: inside the 5 cm window':'🟡 Survived, '+lowRead+' cm above the floor: safe, but outside the 5 cm window'))+'</div>'+
+    '<table><tr><th>Phase 1 · Calibration</th><th></th></tr><tr><td>Jumper</td><td>'+j.name+'</td></tr><tr><td>Mass m</td><td>'+fmt(j.g/1000,3)+' kg</td></tr><tr><td>Jumper length (ankles to head)</td><td>'+fmt(j.L,2)+' m</td></tr><tr><td>Cord</td><td>'+nLong+' long + '+nShort+' short bands</td></tr><tr><td>L<sub>o</sub></td><td>'+fmt(cal.Lo,2)+' m</td></tr><tr><td>L<sub>s</sub></td><td>'+fmt(cal.Ls,2)+' m</td></tr><tr><td>Stretch x<sub>cal</sub> = L<sub>s</sub> − L<sub>o</sub></td><td>'+fmt(cal.Ls-cal.Lo,2)+' m</td></tr><tr><td>Spring constant k</td><td>'+fmt(cal.k,1)+' N/m</td></tr>'+
+    '<tr><th>Phase 2 · Prediction</th><th></th></tr><tr><td>PE<sub>g</sub> = m g (3.0 m)</td><td>'+fmt(pred.PE,2)+' J</td></tr><tr><td>Predicted max stretch x</td><td>'+fmt(pred.x,2)+' m</td></tr><tr><td>Predicted gap to the floor</td><td>'+Math.round(pred.gap)+' cm</td></tr>'+
+    '<tr><th>Phase 3 · The test</th><th></th></tr><tr><td>Actual lowest point (head)</td><td>'+lowRead+' cm</td></tr><tr><td>Survived?</td><td>'+(drop.crash?'NO':'YES')+'</td></tr><tr><td>Accuracy (predicted − actual)</td><td>'+Math.abs(lowRead-Math.round(pred.gap))+' cm</td></tr></table>'+
+    '<p>Copy these onto your lab sheet. Phase 4 (negative work, the energy leak, and the factor of safety) is YOUR audit to write.</p>';
+  $("repCode").textContent=makeCode(); $("playBtn").classList.remove("hide"); $("ovReport").classList.add("on"); save();
+};
+$("copyCode").onclick=()=>{ const c=$("repCode").textContent; (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{$("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500);}).catch(()=>{ const r=document.createRange(); r.selectNodeContents($("repCode")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); };
+$("printRep").onclick=()=>window.print();
+$("closeRep").onclick=()=>$("ovReport").classList.remove("on");
+$("playBtn").onclick=()=>{ freeplay=true; $("ovReport").classList.remove("on"); $("lvlPill").textContent="Free play"; $("jumpCard").classList.remove("locked"); $("buildCard").classList.remove("locked"); $("readCard").classList.add("hide"); $("calCard").classList.add("locked"); $("predCard").classList.add("locked"); $("tagGo").classList.add("hide"); drop=null; view="drop"; $("calControls").classList.add("hide"); $("dropControls").classList.remove("hide"); $("btnDrop").textContent="▶ Drop (free play)"; $("btnDrop").disabled=false; $("btnBackCal").classList.add("hide"); $("scrubBox").classList.add("hide"); $("dropHint").textContent="Free play: change the jumper or the bands and drop. Watch the energy bars."; refreshShelf(); draw(0); save(); };
+
+/* ---------- start ---------- */
+function begin(resume){
+  if(!resume){ jumperId=null; nLong=0; nShort=0; cal={Lo:null,Ls:null,k:null,done:false}; pred={PE:null,x:null,gap:null,done:false,cleared:false}; view="cal"; hang="none"; drop=null; lowRead=null; finished=false; freeplay=false; }
+  $("ovStart").classList.remove("on"); $("predCard").classList.add("locked");
+  if(jumperId){ const j=jumper(); $("tagJ").textContent=j.name; $("tagM").textContent=j.g+" g = "+fmt(j.g/1000,3)+" kg"; }
+  refreshShelf(); renderSteps(); renderLedger();
+  if(resume){
+    if(cal.done){ $("inLo").value=fmt(cal.Lo,2); $("inLs").value=fmt(cal.Ls,2); $("inK").value=fmt(cal.k,1); $("predCard").classList.remove("locked"); if(!pred.done){ ["inPE","inX","inGap"].forEach(i=>$(i).disabled=false); $("btnPred").disabled=false; } }
+    if(pred.done){ $("inPE").value=fmt(pred.PE,2); $("inX").value=fmt(pred.x,2); $("inGap").value=Math.round(pred.gap); if(pred.cleared){ $("tagGo").classList.remove("hide"); if(!drop){ $("calControls").insertAdjacentHTML("beforeend",'<button class="btn peach" id="btnToPlatform">Go to the platform →</button>'); $("btnToPlatform").onclick=toDropView; } } }
+    if(freeplay){ $("playBtn").click(); return; }
+    if(drop){ view="drop"; $("calControls").classList.add("hide"); $("dropControls").classList.remove("hide"); $("btnDrop").disabled=true; $("jumpCard").classList.add("locked"); $("buildCard").classList.add("locked"); onRecorded(); if(lowRead!=null){ $("inLow").value=lowRead; $("inLow").disabled=true; $("btnLow").disabled=true; $("finishBtn").disabled=false; $("playBtn").classList.remove("hide"); $("dropHint").textContent="Report ready. Click Finish for your code."; } }
+    else if(view==="drop") toDropView();
+  }
+  draw(0); save();
+}
+$("btnStart").onclick=()=>{ const n=$("inName").value.trim(); if(n.split(/\s+/).length<2){ $("startErr").textContent="Please type your first AND last name."; $("startErr").style.color="#C23B52"; return; } studentName=n; begin(false); };
+$("btnResume").onclick=()=>{ const d=load(); if(!d) return; ({studentName,jumperId,nLong,nShort,cal,pred,view,drop,lowRead,finished,freeplay,calLocked}=d); hang="none"; begin(true); };
+$("btnWipe").onclick=()=>{ localStorage.removeItem("bungeeLab"); $("btnResume").classList.add("hide"); $("btnWipe").classList.add("hide"); $("inName").value=""; };
+(function init(){ const d=load(); if(d&&d.studentName){ $("btnResume").classList.remove("hide"); $("btnWipe").classList.remove("hide"); $("inName").value=d.studentName; $("btnResume").textContent="Continue as "+d.studentName; } refreshShelf(); renderSteps(); renderLedger(); $("predCard").classList.add("locked"); draw(0); })();
+</script>
+</body>
+</html>

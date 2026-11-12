@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impulse Drop Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+  --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+  --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+  --pass:#6FD3A0; --fail:#FF8A9B;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+button{font-family:inherit;color:var(--text)}
+input,select{font-family:inherit;color:var(--text)}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:640px){header h1{font-size:18px}}
+header h1 span{color:var(--skyD)}
+.logo{width:30px;height:30px;border-radius:50%;background:var(--peachD);box-shadow:inset -6px -6px 0 rgba(0,0,0,.08);position:relative}
+.logo:after{content:"";position:absolute;left:7px;top:8px;width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--lemon);color:#6B5F80}
+.spacer{flex:1}
+.prog{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;background:#EADFCE;border:2px solid #fff;box-shadow:0 0 0 2px #EADFCE}
+.dot.on{background:var(--pass);box-shadow:0 0 0 2px var(--pass)}
+.dot.half{background:var(--lemonD);box-shadow:0 0 0 2px var(--lemonD)}
+.btn{border:0;border-radius:14px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.10);transition:transform .08s,box-shadow .08s;background:var(--sky);color:#2E2745}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.10)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.mint{background:var(--mint)} .btn.lav{background:var(--lav)} .btn.peach{background:var(--peach)} .btn.lemon{background:var(--lemon)} .btn.pink{background:var(--pink)}
+.btn.ghost{background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:12px}
+.btn.big{font-size:16px;padding:12px 22px}
+main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:16px;padding:16px 18px 28px;max-width:1380px;width:100%;margin:0 auto}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}.col-mid{grid-column:1/-1;order:-1}}
+@media(max-width:640px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+.card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+.card + .card{margin-top:14px}
+.card.locked{opacity:.55;pointer-events:none}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.jump{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.jump:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.jump.active{border-color:var(--sky);background:#EEF5FF}
+.jump svg{width:44px;height:56px;display:block;margin:0 auto}
+.jump .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.jump .fm{font-size:10px;color:var(--muted);font-weight:600}
+.jump.lockedj{pointer-events:none;opacity:.55}
+.bandrow{display:flex;align-items:center;gap:8px;margin:8px 0;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:16px;padding:8px 10px}
+.bandrow .sw{width:34px;height:22px;border-radius:11px;border:3px solid;flex:0 0 auto}
+.bandrow .nm{flex:1;font-size:13px;font-weight:700;line-height:1.15}
+.bandrow .nm small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+.bandrow .ct{display:flex;align-items:center;gap:6px}
+.bandrow .ct button{width:30px;height:30px;border-radius:50%;border:0;background:var(--lav);font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.10);line-height:1}
+.bandrow .ct button:disabled{opacity:.35;cursor:not-allowed}
+.bandrow .ct b{min-width:26px;text-align:center;font-size:17px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:14px;background:#FAF7F2;border:2px solid transparent}
+.step.now{background:#FFF4B8;border-color:#F0DC8A}
+.step.done{background:#E6F8EF}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--lav);color:#3D3356;font-weight:700;display:grid;place-items:center;font-size:13px}
+.step.done .n{background:var(--pass);color:#fff}
+.step .t{font-size:13px;line-height:1.25}
+.step .t b{display:block;font-size:13.5px}
+.stage{position:relative;background:#F3EEF9;border:3px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+canvas{display:block;width:100%;height:auto}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#6B5F80}
+.tag.rec{background:#FFECEF;border-color:#FFB7D5;color:#E0556C}
+.tag.rec:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#E0556C;margin-right:6px;animation:blink 1s infinite}
+.tag.go{background:#E6F8EF;border-color:#9FE6C4;color:#2E7D55}
+@keyframes blink{50%{opacity:.2}}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:10px;background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 12px}
+.scrub input[type=range]{flex:1;accent-color:var(--skyD)}
+.scrub .tm{font-weight:700;font-size:13px;color:var(--muted);min-width:70px;text-align:right}
+.scrub .lab{font-size:12px;font-weight:700;color:var(--muted)}
+.field{display:flex;align-items:center;gap:8px;margin:8px 0}
+.field label{font-size:13px;font-weight:700;flex:1;line-height:1.2}
+.field input{width:104px;border:3px solid var(--line);border-radius:12px;padding:7px 10px;font-size:15px;font-weight:700;text-align:right;background:#FFFBF5}
+.field input:focus{outline:none;border-color:var(--sky)}
+.field input:disabled{background:#F6F1EA;color:#9A8FB0}
+.field .u{font-size:13px;color:var(--muted);font-weight:700;min-width:28px}
+.note{font-size:12.5px;line-height:1.35;color:#6B5F80;background:#FAF7F2;border-radius:12px;padding:8px 10px;margin:6px 0}
+.ok{background:#E6F8EF;color:#2E7D55;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bad{background:#FFECEF;color:#C23B52;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.warn{background:#FFF4B8;color:#7A5B00;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:10px 8px 0;background:#FFFBF5;border:3px solid var(--line);border-radius:16px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bar .fill{width:70%;border-radius:10px 10px 4px 4px;transition:height .06s linear;min-height:3px}
+.bar .lb{font-size:11px;font-weight:700;color:#6B5F80;margin:6px 0 4px;text-align:center;line-height:1.1}
+.bar .val{font-size:11px;font-weight:700;color:var(--muted);height:14px}
+.ledger{width:100%;border-collapse:collapse;font-size:12.5px}
+.ledger td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700}
+.ledger td:last-child{text-align:right;font-family:Nunito,monospace;font-variant-numeric:tabular-nums}
+.ledger .hid{color:#C6CFDC;letter-spacing:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.3}
+.hide{display:none!important}
+.ov{position:fixed;inset:0;background:rgba(74,63,92,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.ov.on{display:flex}
+.modal{background:#fff;border:3px solid var(--line);border-radius:24px;padding:22px;max-width:640px;width:100%;box-shadow:0 10px 0 var(--line);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px}
+.modal h2 span{color:var(--skyD)}
+.modal p{font-size:14px;line-height:1.4;margin:6px 0 12px}
+.modal input.name{width:100%;border:3px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;font-weight:700;background:#FFFBF5}
+.modal input.name:focus{outline:none;border-color:var(--sky)}
+.code{font-family:Nunito,monospace;font-weight:800;font-size:22px;letter-spacing:1px;background:#FFF4B8;border:3px dashed #F0DC8A;border-radius:14px;padding:10px 14px;display:inline-block;margin:6px 0}
+.rep table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.rep th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.rep td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.rep td:last-child{text-align:right}
+.verdict{font-size:20px;font-weight:800;border-radius:16px;padding:12px 14px;margin:8px 0}
+.verdict.good{background:#E6F8EF;color:#2E7D55}
+.verdict.meh{background:#FFF4B8;color:#7A5B00}
+.verdict.crash{background:#FFECEF;color:#C23B52}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;padding:0 18px 18px;line-height:1.4}
+@media print{header,.col-left,.col-right,.controls,.scrub,.foot{display:none!important}main{display:block}.ov{position:static;background:none}.modal{box-shadow:none;max-width:none}}
+</style>
+<style>
+.obj{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.obj:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.obj.active{border-color:var(--sky);background:#EEF5FF}
+.obj svg{width:46px;height:46px;display:block;margin:0 auto}
+.obj .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.obj .fm{font-size:10px;color:var(--muted);font-weight:600}
+.obj.lockedo{pointer-events:none;opacity:.55}
+.surf{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.surf button{border:3px solid #F3E6D4;background:#FFF9F1;border-radius:14px;padding:8px 6px;font-weight:700;font-size:13px;cursor:pointer}
+.surf button.active{border-color:var(--sky);background:#EEF5FF}
+.hrow{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:700;font-size:13px}
+.hrow input{flex:1;accent-color:var(--skyD)}
+.gwrap{background:#FFFBF5;border:3px solid var(--line);border-radius:16px;padding:6px}
+.gleg{display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:12.5px;font-weight:700}
+.gleg i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.gleg .hid{color:#C6CFDC;letter-spacing:2px}
+.cmp{display:grid;grid-template-columns:58px 1fr 1fr 1fr;gap:6px;align-items:center}
+.cmp .hd{font-size:10.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.15;text-transform:uppercase}
+.cmp .rw{font-size:12.5px;font-weight:700;line-height:1.1}
+.seg{display:flex;flex-direction:column;gap:4px}
+.seg button{border:2px solid var(--line);border-radius:10px;background:#FFFBF5;font-weight:700;font-size:12px;padding:5px 2px;cursor:pointer}
+.seg button.on{background:var(--sky);border-color:var(--skyD);color:#2E2745}
+.seg button:disabled{cursor:default}
+.cam{display:flex;gap:6px}
+.cam button{border:2px solid var(--line);border-radius:10px;background:#fff;font-weight:700;font-size:12px;padding:5px 8px;cursor:pointer}
+.cam button.on{background:var(--lemon);border-color:var(--lemonD)}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.photos{grid-template-columns:1fr}}
+.photos figure{margin:0}
+.photos img{width:100%;border:3px solid var(--line);border-radius:14px;display:block}
+.photos figcaption{font-size:12.5px;font-weight:700;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1><i class="logo"></i>IMPULSE <span>DROP</span> LAB <span class="pill" id="lvlPill">Virtual Lab</span></h1>
+  <div class="spacer"></div>
+  <div class="prog"><span id="progTxt">0 / 5 steps</span><div class="dots" id="dots"></div></div>
+  <button class="btn lemon sm" id="finishBtn" disabled>Finish &amp; get code →</button>
+</header>
+
+<main>
+<!-- LEFT -->
+<section class="col-left">
+  <div class="card" id="objCard">
+    <h2>1 · Pick your drop object</h2>
+    <div class="shelf" id="shelf"></div>
+    <div class="note" id="objNote">Pick one. You get two of the SAME object, each sealed in a zip bag. Its mass shows on the kitchen scale.</div>
+  </div>
+  <div class="card hide" id="playCard">
+    <h2>Playground controls</h2>
+    <div class="surf" id="surfBtns"></div>
+    <div class="hrow"><span>Drop height</span><input type="range" id="pgH" min="10" max="300" step="5" value="50"><span id="pgHv">0.50 m</span></div>
+    <div class="note" id="pgNote">Try a higher drop or a different landing. How high can the pillow still save it?</div>
+  </div>
+  <div class="card">
+    <h2>Procedure</h2>
+    <div class="steps" id="steps"></div>
+  </div>
+</section>
+
+<!-- MIDDLE -->
+<section class="col-mid">
+  <div class="stage">
+    <canvas id="cv" width="900" height="720"></canvas>
+    <div class="hud"><span class="tag" id="tagO">No object</span><span class="tag" id="tagM">— g</span><span class="tag" id="tagH">0.50 m drop</span><span class="tag rec hide" id="tagRec">SLOW-MO REC</span></div>
+  </div>
+  <div class="controls" id="labControls">
+    <button class="btn peach big" id="btnDrop1" disabled>▶ Drop 1: hard surface</button>
+    <button class="btn big" id="btnDrop2" disabled>▶ Drop 2: pillow</button>
+    <button class="btn ghost" id="btnPhotos" disabled>📸 Landing photos</button>
+    <span class="hint" id="stageHint">Pick an object to start.</span>
+  </div>
+  <div class="controls hide" id="pgControls">
+    <button class="btn peach big" id="btnPgDrop">▶ Drop</button>
+    <span class="hint" id="pgHint">Playground: pick any object, landing and height.</span>
+  </div>
+  <div class="scrub hide" id="scrubBox">
+    <div class="cam" id="camBtns"><button id="cam1">Drop 1 video</button><button id="cam2">Drop 2 video</button></div>
+    <input type="range" id="scrub" min="0" max="1000" value="1000">
+    <span class="tm" id="scrubT"></span>
+  </div>
+</section>
+
+<!-- RIGHT -->
+<section class="col-right">
+  <div class="card">
+    <h2>Force on the object during the stop</h2>
+    <div class="gwrap"><canvas id="gv" width="592" height="340"></canvas></div>
+    <div class="gleg" id="gleg"></div>
+    <div class="hint">From the high-speed camera. The shaded area under each curve is the impulse, F × Δt.</div>
+  </div>
+
+  <div class="card locked" id="resCard">
+    <h2>4 · Results (questions 1 to 3)</h2>
+    <div class="note">Work each one on your lab sheet first, then check it here. h = <b>0.50 m</b>, g = <b>9.8 m/s²</b>. Both objects end at rest.</div>
+    <div class="field"><label>1 · Velocity just before impact, v = √(2gh)</label><input id="inV" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>2 · Momentum just before impact, p = mv</label><input id="inP" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>3 · Change in momentum, Δp = p<sub>final</sub> − p<sub>initial</sub></label><input id="inDP" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn mint" id="btnRes">✓ Check my results</button><button class="btn ghost sm" id="btnResHint">Hint</button></div>
+    <div id="resMsg"></div>
+  </div>
+
+  <div class="card locked" id="cmpCard">
+    <h2>5 · Compare the two landings</h2>
+    <div class="cmp" id="cmp"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn lav" id="btnCmp">✓ Check my table</button></div>
+    <div id="cmpMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Lab notes</h2>
+    <table class="ledger"><tbody id="ledger"></tbody></table>
+    <div class="hint">Copy these onto your lab sheet. "What happened?", "What did you see?" and question 4 are yours to write there.</div>
+  </div>
+</section>
+</main>
+<div class="foot">Impulse Drop Lab · EasyPrep STEM · Stop times come from a simulated high-speed camera. Real eggs vary, and so do real pillows.</div>
+</div>
+
+<!-- START -->
+<div class="ov on" id="ovStart">
+  <div class="modal">
+    <h2>Impulse <span>Drop</span> Lab</h2>
+    <p>Your mission: save an egg (or something just as fragile) with physics. Drop two of the same object from <b>0.50 m</b>, one onto a hard surface and one onto a pillow. Same object, same drop, same change in momentum. So why does only ONE of them break?</p>
+    <p style="margin-bottom:4px"><b>Your name (first and last)</b>: it goes on your lab report.</p>
+    <input class="name" id="inName" placeholder="e.g. Jordan Rivera" autocomplete="off">
+    <div class="note" style="margin-top:12px">Same as your lab sheet: pick an object, Drop 1 on the hard surface, Drop 2 on the pillow, then Results 1 to 3 and the Compare table. Finish to get your <b>completion code</b>. Your teacher will ask for this code.</div>
+    <div style="margin-top:10px"><button class="btn peach big" id="btnStart">Start the lab →</button></div>
+    <p class="hint" id="startErr"></p>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm hide" id="btnResume">Continue where I left off</button><button class="btn ghost sm hide" id="btnWipe">Start over</button></div>
+  </div>
+</div>
+
+<!-- PHOTOS -->
+<div class="ov" id="ovPhotos">
+  <div class="modal" style="max-width:860px">
+    <h2>Landing <span>photos</span></h2>
+    <p>These go in the two photo boxes on your lab sheet. Download each one (or take a screenshot) and add it to your lab sheet.</p>
+    <div class="photos" id="photoGrid"></div>
+    <div style="margin-top:12px"><button class="btn ghost" id="closePhotos">Back to the lab</button></div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="ov" id="ovReport">
+  <div class="modal rep">
+    <h2>Impulse <span>lab report</span></h2>
+    <p id="repWho"></p>
+    <div id="repBody"></div>
+    <p><b>Your completion code</b>: paste it into the code box on your lab sheet:</p>
+    <div class="code" id="repCode">—</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn mint" id="copyCode">Copy code</button>
+      <button class="btn ghost" id="printRep">Print / save PDF</button>
+      <button class="btn ghost" id="closeRep">Back to the lab</button>
+      <button class="btn lemon" id="playBtn">🎮 Open the playground</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ---------- constants ---------- */
+const G = 9.8, H = 0.50;
+const SLOWF = 0.25;               // slow-motion factor for the fall
+const SLOWI = 0.0125;             // high-speed factor for the impact (80x slower)
+const OBJS = [
+  {id:"egg", name:"Egg",           g:58,  d:0.0050, Fb:22, brk:"cracked",     col:"#FFF3DC", edge:"#E3C58F"},
+  {id:"bal", name:"Water balloon", g:100, d:0.0120, Fb:20, brk:"popped",      col:"#8FB8FF", edge:"#5F8FE0"},
+  {id:"tom", name:"Cherry tomato", g:15,  d:0.0030, Fb:12, brk:"split open",  col:"#FF8A8A", edge:"#D94B5A"},
+  {id:"grp", name:"Grape",         g:6,   d:0.0025, Fb:6,  brk:"split open",  col:"#B79AEC", edge:"#7E5BC2"},
+  {id:"crk", name:"Cracker",       g:10,  d:0.0015, Fb:10, brk:"crumbled",    col:"#F2D7A0", edge:"#D4AE62"},
+  {id:"doh", name:"Play-Doh ball", g:40,  d:0.0090, Fb:10, brk:"flattened",   col:"#FFB7D5", edge:"#F08AB4"},
+];
+const SURFS = [
+  {id:"hard",   name:"Concrete",  thick:0.03},
+  {id:"carpet", name:"Carpet",    thick:0.03},
+  {id:"pillow", name:"Pillow",    thick:0.16},
+  {id:"foam",   name:"Foam pit",  thick:0.36},
+];
+const FLOOR = 640, PXM = 480, LANE = {hard:520, pillow:760, pg:640};
+const CMP_KEY = {hard:["shorter","same","bigger"], pillow:["longer","same","smaller"]};
+const CMP_OPT = [["shorter","longer"],["same","different"],["bigger","smaller"]];
+
+/* ---------- state ---------- */
+let studentName="", objId=null;
+let done = {hard:false, pillow:false};
+let res = {v:null, p:null, dp:null, done:false};
+let cmp = {hard:[null,null,null], pillow:[null,null,null], done:false};
+let finished=false, playground=false;
+let pgSurf="pillow", pgH=0.50, pgRec=null, pgPrev=null;
+let anim = {on:false, which:null, t0:0, rec:null};
+let camWhich=null, scrubR=null, crashSay=null;
+
+const $ = id => document.getElementById(id);
+const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+const fms = s => { const ms=s*1000; return (ms<10? fmt(ms,1) : String(Math.round(ms)))+" ms"; };
+const fN = F => (F<10? fmt(F,1) : String(Math.round(F)))+" N";
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function obj(){ return OBJS.find(o=>o.id===objId); }
+function soft(){ return 1 + ((nameHash(studentName)*7)%17 - 8)/100; }      // each student's pillow is a little different
+function give(surf,m){ return surf==="hard"?0 : surf==="carpet"?0.006 : surf==="pillow"?(0.05+0.25*m)*soft() : 0.30; }
+function impact(o,surf,h){
+  const m=o.g/1000, v=Math.sqrt(2*G*h), gv=give(surf,m), d=o.d+gv, dt=2*d/v, Favg=m*v/dt;
+  const rB=Math.min(dt/SLOWI, 4.5);
+  return {surf,h,m,v,p:m*v,d,give:gv,dt,Favg,Fpk:Favg*Math.PI/2,broke:Favg>o.Fb,tf:Math.sqrt(2*h/G),r0:0.5,rA:Math.sqrt(2*h/G)/SLOWF,rB,rC:0.9,slowN:Math.round(rB>0? rB/dt : 80)};
+}
+function recOf(which){ const o=obj(); if(!o) return null; if(which==="pg") return pgRec; return impact(o,which,H); }
+function clipLen(rec){ return rec.r0+rec.rA+rec.rB+rec.rC; }
+// playback seconds -> {t: sim time since release, e: settle progress 0..1}
+function clipAt(rec,r){
+  if(r<rec.r0) return {t:0,e:0};
+  if(r<rec.r0+rec.rA) return {t:(r-rec.r0)*SLOWF,e:0};
+  if(r<rec.r0+rec.rA+rec.rB) return {t:rec.tf+(r-rec.r0-rec.rA)/rec.rB*rec.dt,e:0};
+  return {t:rec.tf+rec.dt, e:Math.min(1,(r-rec.r0-rec.rA-rec.rB)/rec.rC)};
+}
+function kin(rec,t){
+  if(t<=0) return {y:rec.h,s:0,tau:-1,F:0,v:0,w:0};
+  if(t<rec.tf) return {y:rec.h-0.5*G*t*t,s:0,tau:-1,F:0,v:G*t,w:0};
+  const end = t-rec.tf >= rec.dt*(1-1e-9), tau=end? rec.dt : t-rec.tf, w=Math.PI*tau/rec.dt;
+  return {y:0, s:rec.v*(tau/2+rec.dt/(2*Math.PI)*Math.sin(w)), tau, end, F:(end?0:rec.Fpk*Math.sin(w)), v:rec.v*(1+Math.cos(w))/2, w};
+}
+
+function save(){ try{ localStorage.setItem("impulseLab", JSON.stringify({studentName,objId,done,res,cmp,finished,playground})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("impulseLab")||"null"); }catch(e){ return null; } }
+
+/* ---------- drawing helpers ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d");
+function rr(x,y,w,h,r,fill,stroke,lw){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||3;ctx.stroke();} }
+function circ(x,y,r,fill,stroke,lw){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function ell(x,y,rx,ry,fill,stroke,lw){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function txt(s,x,y,size,col,align,weight){ ctx.font=(weight||700)+" "+size+"px Fredoka, Nunito, sans-serif"; ctx.fillStyle=col||"#4A3F5C"; ctx.textAlign=align||"center"; ctx.fillText(s,x,y); }
+
+function drawRoom(){
+  const g=ctx.createLinearGradient(0,0,0,FLOOR); g.addColorStop(0,"#F3EEF9"); g.addColorStop(1,"#FBF4EC");
+  ctx.fillStyle=g; ctx.fillRect(0,0,900,FLOOR);
+  ctx.fillStyle="rgba(201,182,255,.16)"; for(let x=40;x<900;x+=120){ ctx.fillRect(x,0,3,FLOOR); }
+  ctx.fillStyle="#EADFCE"; ctx.fillRect(0,FLOOR,900,80);
+  ctx.fillStyle="#DCCDB6"; ctx.fillRect(0,FLOOR,900,4);
+  ctx.fillStyle="rgba(255,255,255,.35)"; for(let x=-20;x<900;x+=90){ ctx.fillRect(x,FLOOR+4,2,76); }
+}
+// object half-height in stage pixels (drawn a little bigger than life so it reads)
+const OR = {egg:22, bal:21, tom:15, grp:13, crk:15, doh:18};
+// draw the bagged object with its bottom at (cx,by). q = squash 0..1, broken = show the broken version
+function drawObj(o,cx,by,s,q,broken){
+  ctx.save(); ctx.translate(cx,by); ctx.scale(s,s);
+  const R=OR[o.id], bw=R+15, bh=2*R+16;
+  // contents
+  if(broken){
+    if(o.id==="egg"){ ell(0,-5,24,6,"#FFFDF5","#EFE3C8",2); circ(3,-7,7,"#FFC93C","#E8A917",2);
+      ctx.fillStyle=o.col; ctx.strokeStyle=o.edge; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(-26,-3); ctx.quadraticCurveTo(-24,-24,-10,-18); ctx.lineTo(-13,-11); ctx.lineTo(-17,-15); ctx.lineTo(-20,-8); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(26,-3); ctx.quadraticCurveTo(25,-22,12,-17); ctx.lineTo(15,-10); ctx.lineTo(19,-14); ctx.lineTo(21,-7); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    else if(o.id==="bal"){ ell(0,-4,27,6,"#CFE6FF","#9CC4F5",2); ctx.fillStyle=o.col; ctx.strokeStyle=o.edge; ctx.lineWidth=2;
+      [[-16,-9,-0.5],[2,-11,0.3],[17,-8,0.9]].forEach(([x,y,a])=>{ ctx.save(); ctx.translate(x,y); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-7,0); ctx.quadraticCurveTo(0,-9,8,-1); ctx.quadraticCurveTo(1,-3,-7,0); ctx.fill(); ctx.stroke(); ctx.restore(); });
+      [[-22,-22],[-8,-28],[10,-26],[23,-20]].forEach(([x,y])=>circ(x,y,2.6,"#9CC4F5")); }
+    else if(o.id==="tom"){ ell(0,-4,22,5,"#FFC2C2","#F09A9A",2); ctx.fillStyle=o.col; ctx.strokeStyle=o.edge; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(-9,-8,10,Math.PI*0.9,Math.PI*2.05); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(11,-7,9,Math.PI*0.95,Math.PI*2.1); ctx.closePath(); ctx.fill(); ctx.stroke();
+      [[-3,-5],[2,-8],[5,-4]].forEach(([x,y])=>circ(x,y,1.6,"#FFE88A")); }
+    else if(o.id==="grp"){ ell(0,-3,17,4,"#E0D2FA","#B79AEC",2); ell(-1,-6,14,5.5,o.col,o.edge,2.5); ctx.strokeStyle=o.edge; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-6,-9); ctx.lineTo(-1,-5); ctx.lineTo(4,-9); ctx.stroke(); }
+    else if(o.id==="crk"){ ctx.fillStyle=o.col; ctx.strokeStyle=o.edge; ctx.lineWidth=2;
+      [[-17,-9,13,8,-0.2],[-1,-12,11,9,0.25],[13,-8,10,7,-0.35],[-6,-3,9,5,0.1]].forEach(([x,y,w,h,a])=>{ ctx.save(); ctx.translate(x,y); ctx.rotate(a); ctx.beginPath(); ctx.rect(-w/2,-h/2,w,h); ctx.fill(); ctx.stroke(); ctx.restore(); });
+      [[-24,-2],[8,-2],[20,-3],[2,-20]].forEach(([x,y])=>circ(x,y,1.5,o.edge)); }
+    else { ell(0,-6,27,7,o.col,o.edge,2.5); ell(-8,-8,7,2,"rgba(255,255,255,.55)"); }
+  } else {
+    ctx.save(); ctx.scale(1+0.22*q, 1-0.36*q);
+    if(o.id==="egg"){ ell(0,-R,17,R,o.col,o.edge); ell(-6,-R-8,4,7,"rgba(255,255,255,.75)"); }
+    else if(o.id==="bal"){ circ(0,-R,R,o.col,o.edge); ctx.fillStyle=o.edge; ctx.beginPath(); ctx.moveTo(-4,-2*R-5); ctx.lineTo(4,-2*R-5); ctx.lineTo(0,-2*R+1); ctx.closePath(); ctx.fill(); ell(-7,-R-8,4,6,"rgba(255,255,255,.6)"); }
+    else if(o.id==="tom"){ circ(0,-R,R,o.col,o.edge); ctx.fillStyle="#6FC27A"; for(let i=0;i<5;i++){ const a=-Math.PI/2+i*Math.PI*2/5; ctx.beginPath(); ctx.ellipse(Math.cos(a)*4,-2*R+2+Math.sin(a)*3,5,2,a,0,Math.PI*2); ctx.fill(); } circ(-5,-R-5,3,"rgba(255,255,255,.55)"); }
+    else if(o.id==="grp"){ ell(0,-R,11,R,o.col,o.edge); ell(-4,-R-5,2.5,4,"rgba(255,255,255,.6)"); }
+    else if(o.id==="crk"){ rr(-R,-2*R,2*R,2*R,4,o.col,o.edge,2.5); [[-7,-22],[7,-22],[0,-15],[-7,-8],[7,-8]].forEach(([x,y])=>circ(x,y,1.5,o.edge)); }
+    else { circ(0,-R,R,o.col,o.edge); ell(-6,-R-7,5,3,"rgba(255,255,255,.6)"); }
+    ctx.restore();
+  }
+  // zip bag
+  const top=-bh+ (broken? R*1.1 : 0.36*q*R*1.6);
+  rr(-bw,top,2*bw,-top+2,7,"rgba(143,184,255,.14)","rgba(95,143,224,.55)",2);
+  ctx.strokeStyle="rgba(95,143,224,.8)"; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(-bw+3,top+6); ctx.lineTo(bw-3,top+6); ctx.stroke();
+  ctx.restore();
+  return {top:by+top*s};
+}
+function softPath(x,top,bot,dent,halfW){
+  const L=x-halfW, R=x+halfW; ctx.beginPath(); ctx.moveTo(L+14,bot); ctx.quadraticCurveTo(L-12,(top+bot)/2,L+16,top+5);
+  for(let i=0;i<=28;i++){ const xx=L+16+(R-L-32)*i/28, u=(xx-x)/36; ctx.lineTo(xx, top+5*(1-Math.sin(Math.PI*i/28))+dent*Math.exp(-u*u)); }
+  ctx.quadraticCurveTo(R+12,(top+bot)/2,R-14,bot); ctx.closePath();
+}
+function drawSurface(x,surf,surfY,dentPx){
+  if(surf==="hard"){ rr(x-98,surfY,196,FLOOR-surfY,4,"#C6CFDC","#A9B4C6"); ctx.fillStyle="#B4BFCF"; [[-70,5],[-30,9],[20,4],[62,8],[-5,6]].forEach(([dx,dy])=>ctx.fillRect(x+dx,surfY+dy,7,2)); }
+  else if(surf==="carpet"){ rr(x-98,surfY,196,FLOOR-surfY,5,"#C9B6FF","#9C84E6"); ctx.strokeStyle="#9C84E6"; ctx.lineWidth=2; for(let xx=x-90;xx<=x+90;xx+=9){ ctx.beginPath(); ctx.moveTo(xx,surfY+1); ctx.lineTo(xx+2,surfY-4); ctx.stroke(); } }
+  else if(surf==="pillow"){ softPath(x,surfY,FLOOR,dentPx,104); ctx.fillStyle="#FFFFFF"; ctx.fill(); ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=3; ctx.stroke();
+    ctx.save(); softPath(x,surfY,FLOOR,dentPx,104); ctx.clip(); ctx.fillStyle="#EFE7FF"; for(let i=-5;i<=5;i++){ ctx.fillRect(x+i*20-3, surfY-10, 6, 140); } ctx.restore();
+    softPath(x,surfY,FLOOR,dentPx,104); ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=3; ctx.stroke(); }
+  else { softPath(x,surfY,FLOOR,dentPx,112); ctx.fillStyle="#FFE1CC"; ctx.fill(); ctx.strokeStyle="#F09A6B"; ctx.lineWidth=3; ctx.stroke();
+    ctx.save(); softPath(x,surfY,FLOOR,dentPx,112); ctx.clip(); ctx.fillStyle="#FFD0B0"; for(let yy=surfY+22;yy<FLOOR;yy+=26) for(let xx=x-100+((yy/26|0)%2)*14;xx<x+104;xx+=28) circ(xx,yy,4,"#FFD0B0"); ctx.restore(); }
+}
+function drawRuler(x,surfY,h,px){
+  const rx=x-92, top=surfY-(h+0.06)*px; rr(rx,top,14,surfY-top,4,"#FFE88A","#E8C94A",2.5);
+  const step = h>1.2? 0.5 : 0.1; ctx.strokeStyle="#7A5B00"; ctx.lineWidth=1.5;
+  for(let m=step; m<=h+0.001; m+=step){ const y=surfY-m*px; ctx.beginPath(); ctx.moveTo(rx+5,y); ctx.lineTo(rx+14,y); ctx.stroke(); }
+  const y=surfY-h*px; ctx.setLineDash([5,5]); ctx.strokeStyle="#E0556C"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(rx+16,y); ctx.lineTo(x+46,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle="#E0556C"; ctx.beginPath(); ctx.moveTo(rx+15,y); ctx.lineTo(rx+25,y-6); ctx.lineTo(rx+25,y+6); ctx.closePath(); ctx.fill();
+  rr(rx-22,top-26,58,20,10,"#fff","#E8C94A",2); txt(fmt(h,2)+" m",rx+7,top-11,12,"#7A5B00");
+}
+function drawHand(cx,y,open){
+  const skin="#FFD9C2", sk2="#F0B79A";
+  rr(cx-9,y-64,18,44,8,"#9FE6C4","#5EC79A",2.5);
+  rr(cx-17,y-30,34,24,11,skin,sk2,2.5);
+  if(open){ rr(cx-23,y-12,9,15,4,skin,sk2,2); rr(cx+14,y-12,9,15,4,skin,sk2,2); }
+  else { rr(cx-13,y-10,9,14,4,skin,sk2,2); rr(cx+4,y-10,9,14,4,skin,sk2,2); }
+}
+// one lane: surface, ruler, hand and the object in its current state
+function drawLane(key,x,surf,rec,st,e,restBroken,label,status,statusCol){
+  const o=obj(), h=rec?rec.h:H, thick=SURFS.find(s=>s.id===surf).thick;
+  const px = playground? Math.min(PXM, 470/(h+thick+0.02)) : PXM;
+  const surfY = FLOOR-Math.max(14, thick*px);
+  let sink=0, q=0, broken=false, y=h, held=true;
+  if(rec && st){
+    held = st.tau<0 && st.y>=h;
+    y=st.y;
+    if(st.tau>=0){
+      const frac=st.s/rec.d, stopped=!!st.end;
+      broken = rec.broke && st.tau>=0.5*rec.dt;
+      if(rec.give>0){ sink = rec.give*frac*(1-0.4*(e||0)); q = 0.18*Math.sin(st.w); }
+      else { q = stopped? 0 : Math.min(1, frac*1.05); }
+    }
+  }
+  drawSurface(x,surf,surfY,sink*px);
+  drawRuler(x,surfY,h,px);
+  txt(label,x,FLOOR+34,13,"#6B5F80");
+  if(status) txt(status,x,FLOOR+56,13,statusCol||"#9A8FB0");
+  if(!o) return {surfY,px};
+  const by = surfY - y*px + sink*px;
+  const relY = surfY - h*px;
+  const g = drawObj(o,x,by,1,q,broken||(!st&&restBroken));
+  // momentum arrow while falling
+  if(st && st.tau<0 && st.v>0.2){ const L=14+st.v/ (rec.v) *54, ax=x+OR[o.id]+34; ctx.strokeStyle="#E0556C"; ctx.fillStyle="#E0556C"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(ax,by-OR[o.id]-L/2); ctx.lineTo(ax,by-OR[o.id]+L/2-6); ctx.stroke(); ctx.beginPath(); ctx.moveTo(ax-7,by-OR[o.id]+L/2-8); ctx.lineTo(ax+7,by-OR[o.id]+L/2-8); ctx.lineTo(ax,by-OR[o.id]+L/2+3); ctx.closePath(); ctx.fill(); txt("p",ax+13,by-OR[o.id]+4,15,"#E0556C","left"); }
+  const handY = relY-(2*OR[o.id]+16)+8;
+  drawHand(x,handY,!held);
+  return {surfY,px};
+}
+
+/* ---------- high-speed impact cam (inset) ---------- */
+function drawCam(which,rec,st,e,maxF){
+  const X=24,Y=58,W=318,Hh=198, o=obj();
+  rr(X,Y,W,Hh,16,"#FFFFFF","#C9B6FF",3);
+  ctx.save(); rr(X+3,Y+3,W-6,Hh-6,13); ctx.clip();
+  ctx.fillStyle="#F7F2FD"; ctx.fillRect(X,Y,W,Hh);
+  const cx=X+104, gy=Y+150, surf=rec.surf;
+  let frac=0,q=0,broken=false,lift=0;
+  if(st.tau<0){ lift=Math.min(60, st.y*520); }
+  else { frac=st.s/rec.d; broken=rec.broke && st.tau>=0.5*rec.dt; }
+  const soft=rec.give>0;
+  if(soft){ const dent=44*frac*(1-0.4*(e||0));
+    ctx.beginPath(); ctx.moveTo(X,gy+60); ctx.lineTo(X,gy); for(let i=0;i<=40;i++){ const xx=X+ (208)*i/40, u=(xx-cx)/46; ctx.lineTo(xx, gy+dent*Math.exp(-u*u)); } ctx.lineTo(X+208,gy+60); ctx.closePath();
+    ctx.fillStyle= surf==="foam"?"#FFE1CC":"#FFFFFF"; ctx.fill(); ctx.strokeStyle= surf==="foam"?"#F09A6B": surf==="carpet"?"#9C84E6":"#C9B6FF"; ctx.lineWidth=3; ctx.stroke();
+    if(surf==="carpet"){ ctx.fillStyle="#C9B6FF"; ctx.fill(); }
+    q=0.18*Math.sin(st.w||0); drawObj(o,cx,gy+dent-lift,1.9,q,broken);
+  } else {
+    ctx.fillStyle="#C6CFDC"; ctx.fillRect(X,gy,208,60); ctx.fillStyle="#A9B4C6"; ctx.fillRect(X,gy,208,4);
+    q = st.end? 0 : Math.min(1,frac*1.05); drawObj(o,cx,gy-lift,1.9,q,broken);
+    if(broken && !st.end){ ctx.strokeStyle="#E0556C"; ctx.lineWidth=3; [[-58,-8,-74,-16],[58,-8,74,-16],[-46,-34,-58,-48],[46,-34,58,-48]].forEach(([a,b,c,d])=>{ ctx.beginPath(); ctx.moveTo(cx+a,gy+b); ctx.lineTo(cx+c,gy+d); ctx.stroke(); }); }
+  }
+  ctx.restore();
+  // header strip
+  rr(X+10,Y+10,W-20,24,12,"#F1EAFE"); txt("HIGH-SPEED IMPACT CAM · "+rec.slowN+"× slower",X+W/2,Y+27,12,"#6B5F80");
+  // stopwatch + force bar on the right
+  const px=X+226; ctx.fillStyle="#fff"; rr(px-6,Y+42,92,148,12,"#FFFBF5","#F0E3D2",2);
+  txt("STOP TIME",px+40,Y+60,10.5,"#9A8FB0");
+  const tau = st.tau<0? 0 : st.tau;
+  txt(fms(tau),px+40,Y+82,st.end?17:16, st.end?"#2E7D55":"#4A3F5C");
+  txt("FORCE NOW",px+40,Y+104,10.5,"#9A8FB0");
+  const bh=56, by=Y+112; rr(px+4,by,18,bh,6,"#F1EAFE");
+  const fh=Math.max(0,Math.min(1,st.F/maxF))*bh; if(fh>0.5) rr(px+4,by+bh-fh,18,fh,Math.min(6,fh/2),"#E0556C");
+  txt(fN(st.F||0),px+58,by+26,14,"#4A3F5C");
+  txt(st.tau<0?"falling":(st.end?"stopped":"stopping"),px+58,by+44,10.5,"#9A8FB0");
+  txt(which==="hard"?"Drop 1 · hard":which==="pillow"?"Drop 2 · pillow":SURFS.find(s=>s.id===rec.surf).name,px+40,Y+184,10.5,"#9A8FB0");
+}
+
+/* ---------- Crash, the test-dummy guide ---------- */
+function crashLine(){
+  if(crashSay) return crashSay;
+  const o=obj();
+  if(playground) return "Playground! Try a higher drop or a new landing. How high can the pillow save it?";
+  if(finished) return "That is the impulse-momentum theorem! Click Finish for your code.";
+  if(!o) return "Hi! I'm Crash, the test dummy. Pick a drop object and write its mass in KILOGRAMS.";
+  if(anim.on){ const st=kin(anim.rec, clipAt(anim.rec,(performance.now()-anim.t0)/1000).t); if(st.tau<0) return "Falling! It gains momentum all the way down."; return anim.which==="hard"? "CONTACT! Watch the stopwatch." : "Look how far the pillow sinks while it stops..."; }
+  if(!done.hard) return "Drop 1: let it fall 0.50 m onto the hard surface. Watch the impact cam!";
+  if(!done.pillow){ const r=recOf("hard"); return "Ouch, it "+o.brk+"! That stop took only "+fms(r.dt)+". Now Drop 2: same object, same height, onto the pillow."; }
+  if(!res.done) return "Safe! Same drop, same momentum, a much LONGER stop. Now work Results 1 to 3 on your sheet and check them.";
+  if(!cmp.done) return "Nice math! Now compare the two landings. The stopwatches and the force graph tell you everything.";
+  return "Click Finish for your code.";
+}
+function drawCrash(line,t){
+  const x=92, fy=FLOOR-2, bob=Math.sin((t||0)*5)*1.5;
+  const yel="#FFE88A", yelD="#E8C94A", dark="#3D3356";
+  ctx.save(); ctx.translate(x,fy+bob);
+  ctx.fillStyle="rgba(74,63,92,.12)"; ctx.beginPath(); ctx.ellipse(0,2,34,6,0,0,Math.PI*2); ctx.fill();
+  rr(-22,-10,18,10,4,dark); rr(4,-10,18,10,4,dark);
+  rr(-17,-34,12,26,5,yel,yelD,2.5); rr(5,-34,12,26,5,yel,yelD,2.5);
+  circ(-11,-22,3.2,dark); circ(11,-22,3.2,dark);
+  rr(-28,-94,56,64,16,yel,yelD);
+  rr(-43,-88,15,40,7,yel,yelD,2.5); rr(28,-88,15,40,7,yel,yelD,2.5);
+  circ(-35.5,-66,3.2,dark); circ(35.5,-66,3.2,dark);
+  circ(-35.5,-44,7.5,yel,yelD,2.5); circ(35.5,-44,7.5,yel,yelD,2.5);
+  // chest target
+  circ(0,-64,13,"#fff",dark,2); ctx.fillStyle=dark; ctx.beginPath(); ctx.moveTo(0,-64); ctx.arc(0,-64,13,-Math.PI/2,0); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(0,-64); ctx.arc(0,-64,13,Math.PI/2,Math.PI); ctx.closePath(); ctx.fill();
+  rr(-7,-104,14,12,4,yelD);
+  circ(0,-124,28,yel,yelD,3);
+  // head target marks on both temples
+  [[-21,-132],[21,-132]].forEach(([hx,hy])=>{ circ(hx,hy,6.5,"#fff",dark,1.6); ctx.fillStyle=dark; ctx.beginPath(); ctx.moveTo(hx,hy); ctx.arc(hx,hy,6.5,-Math.PI/2,0); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(hx,hy); ctx.arc(hx,hy,6.5,Math.PI/2,Math.PI); ctx.closePath(); ctx.fill(); });
+  ctx.fillStyle="rgba(240,138,180,.45)"; ctx.beginPath(); ctx.arc(-14,-114,5,0,Math.PI*2); ctx.arc(14,-114,5,0,Math.PI*2); ctx.fill();
+  circ(-9,-124,3.2,dark); circ(9,-124,3.2,dark); circ(-8,-125,1,"#fff"); circ(10,-125,1,"#fff");
+  ctx.strokeStyle=dark; ctx.lineWidth=2.2; ctx.beginPath(); ctx.arc(0,-117,7,0.25,Math.PI-0.25); ctx.stroke();
+  rr(-26,-4,52,16,8,"#FFF4B8","#F0DC8A",2); txt("CRASH",0,8,10,"#6B5F80");
+  ctx.restore();
+  // speech bubble anchored to the head
+  const bx=132, bw=224, pad=12; ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.textAlign="left";
+  const words=line.split(" "), lines=[]; let cur="";
+  for(const w of words){ const tst=cur?cur+" "+w:w; if(ctx.measureText(tst).width>bw-pad*2){ lines.push(cur); cur=w; } else cur=tst; } if(cur) lines.push(cur);
+  const bh=lines.length*19+pad*2, by=fy-178-bh+bob;
+  rr(bx,by,bw,bh,14,"#fff","#C9B6FF");
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+10,by+bh-12); ctx.lineTo(x+24,fy-150+bob); ctx.lineTo(bx+34,by+bh-2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle="#C9B6FF"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx+10,by+bh-12); ctx.lineTo(x+24,fy-150+bob); ctx.lineTo(bx+34,by+bh-2); ctx.stroke();
+  ctx.fillStyle="#fff"; ctx.fillRect(bx+12,by+bh-6,20,8);
+  ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.fillStyle="#4A3F5C"; ctx.textAlign="left"; lines.forEach((l,i)=>ctx.fillText(l, bx+pad, by+pad+14+i*19));
+}
+
+/* ---------- frame ---------- */
+// live = {which, rec, st, e} for the clip being played or scrubbed (or null)
+function draw(live, opts={}){
+  drawRoom();
+  const o=obj();
+  if(!playground){
+    for(const key of ["hard","pillow"]){
+      if(opts.photo && key!==live.which) continue;
+      const rec=recOf(key), isLive=live&&live.which===key;
+      const rest = !isLive && done[key] && rec ? {st:kin(rec,rec.tf+rec.dt), e:1} : null;
+      const st = isLive? live.st : rest? rest.st : null, e = isLive? live.e : rest? 1 : 0;
+      const status = !o? "" : done[key]&&!(isLive&&anim.on) ? (rec.broke? "✗ it "+o.brk : "✓ safe, not a scratch") : (isLive&&anim.on? "recording…" : "ready");
+      const col = done[key]&&!(isLive&&anim.on)? (rec.broke?"#C23B52":"#2E7D55") : "#9A8FB0";
+      drawLane(key,opts.photo?620:LANE[key],key,rec,st,e,false,key==="hard"?"DROP 1 · HARD SURFACE":"DROP 2 · PILLOW",status,col);
+    }
+  } else {
+    const rec=pgRec, isLive=live&&live.which==="pg";
+    const st = isLive? live.st : null;
+    const sname=SURFS.find(s=>s.id===pgSurf).name.toUpperCase();
+    let status="ready", col="#9A8FB0";
+    if(isLive && !anim.on && rec){ status = rec.broke? "✗ it "+o.brk+" · "+fN(rec.Favg)+" for "+fms(rec.dt) : "✓ safe · "+fN(rec.Favg)+" for "+fms(rec.dt); col=rec.broke?"#C23B52":"#2E7D55"; }
+    drawLane("pg",LANE.pg,pgSurf, rec||(o?impact(o,pgSurf,pgH):null), st, isLive?live.e:0, false, "PLAYGROUND · "+sname, o?status:"", col);
+  }
+  if(live && o){ const maxF = playground? Math.max(live.rec.Fpk, pgPrev?pgPrev.Fpk:0) : recOf("hard").Fpk; drawCam(live.which,live.rec,live.st,live.e,maxF); }
+  if(!opts.photo) drawCrash(crashLine(), performance.now()/1000);
+  else { rr(24,FLOOR+38-22,300,34,12,"#fff","#F0E3D2",2); txt(opts.caption,36,FLOOR+38,13,"#4A3F5C","left"); }
+}
+function restLive(which){ const rec=recOf(which); if(!rec) return null; return {which,rec,st:kin(rec,rec.tf+rec.dt),e:1}; }
+function currentLive(){
+  if(anim.on){ const c=clipAt(anim.rec,(performance.now()-anim.t0)/1000); return {which:anim.which,rec:anim.rec,st:kin(anim.rec,c.t),e:c.e}; }
+  if(camWhich){ const rec=recOf(camWhich); if(!rec) return null; if(scrubR!=null){ const c=clipAt(rec,scrubR); return {which:camWhich,rec,st:kin(rec,c.t),e:c.e}; } return restLive(camWhich); }
+  return null;
+}
+function redraw(){ const l=currentLive(); draw(l); drawGraph(l); }
+
+/* ---------- force-time graph ---------- */
+const gv=$("gv"), gx=gv.getContext("2d");
+function drawGraph(live){
+  const W=592,Hh=340, L=70,R=20,T=18,B=62; gx.clearRect(0,0,W,Hh);
+  const o=obj(); const series=[];
+  if(o){
+    if(!playground){ const a=recOf("hard"), b=recOf("pillow");
+      series.push({rec:a,col:"#F09A6B",fill:"rgba(255,201,168,.65)",on:done.hard||(live&&live.which==="hard"),upto:(live&&live.which==="hard"&&anim.on)?live.st.tau:null});
+      series.push({rec:b,col:"#5F8FE0",fill:"rgba(143,184,255,.55)",on:done.pillow||(live&&live.which==="pillow"),upto:(live&&live.which==="pillow"&&anim.on)?live.st.tau:null});
+    } else { if(pgPrev) series.push({rec:pgPrev,col:"#B9B0C9",fill:"rgba(201,182,255,.35)",on:true,upto:null}); if(pgRec) series.push({rec:pgRec,col:"#F09A6B",fill:"rgba(255,201,168,.65)",on:!!live,upto:(live&&anim.on)?live.st.tau:null}); }
+  }
+  let tMax=0.05,fMax=60; if(series.length){ tMax=Math.max(...series.map(s=>s.rec.dt))*1.12; fMax=Math.max(...series.map(s=>s.rec.Fpk))*1.15; }
+  const X=t=>L+(W-L-R)*t/tMax, Y=F=>Hh-B-(Hh-T-B)*F/fMax;
+  gx.strokeStyle="#EADFCE"; gx.lineWidth=2; gx.font="700 22px Fredoka, Nunito, sans-serif"; gx.fillStyle="#9A8FB0";
+  const nice=(mx,n)=>{ const raw=mx/n, pw=Math.pow(10,Math.floor(Math.log10(raw))); return [1,2,5,10].map(k=>k*pw).find(sx=>sx>=raw*0.999); };
+  const fs=nice(fMax,4), ts=nice(tMax*1000,5);
+  for(let F=0; F<=fMax*1.0001; F+=fs){ const y=Y(F); gx.beginPath(); gx.moveTo(L,y); gx.lineTo(W-R,y); gx.stroke(); gx.textAlign="right"; gx.fillText(fs<1?fmt(F,1):String(Math.round(F)),L-8,y+7); }
+  for(let t=0; t<=tMax*1000*1.0001; t+=ts){ const x=X(t/1000); gx.textAlign="center"; gx.fillText(ts<1?fmt(t,1):String(Math.round(t)),x,Hh-B+26); }
+  gx.strokeStyle="#6B5F80"; gx.lineWidth=3; gx.beginPath(); gx.moveTo(L,T); gx.lineTo(L,Hh-B); gx.lineTo(W-R,Hh-B); gx.stroke();
+  gx.fillStyle="#6B5F80"; gx.textAlign="center"; gx.fillText("time since contact (ms)",(L+W-R)/2,Hh-6);
+  gx.save(); gx.translate(20,(T+Hh-B)/2); gx.rotate(-Math.PI/2); gx.fillText("force (N)",0,0); gx.restore();
+  if(!series.some(s=>s.on)){ gx.fillStyle="#C6BBD6"; gx.font="700 26px Fredoka, Nunito, sans-serif"; gx.fillText(o?"Drop to record the force":"Pick an object first",(L+W-R)/2,(T+Hh-B)/2); }
+  for(const s of series){ if(!s.on) continue; const end = s.upto==null? s.rec.dt : Math.max(0,Math.min(s.rec.dt,s.upto)); if(end<=0) continue;
+    gx.beginPath(); gx.moveTo(X(0),Y(0)); const n=60; for(let i=0;i<=n;i++){ const t=end*i/n; gx.lineTo(X(t),Y(s.rec.Fpk*Math.sin(Math.PI*t/s.rec.dt))); } gx.lineTo(X(end),Y(0)); gx.closePath(); gx.fillStyle=s.fill; gx.fill();
+    gx.beginPath(); for(let i=0;i<=n;i++){ const t=end*i/n, x=X(t), y=Y(s.rec.Fpk*Math.sin(Math.PI*t/s.rec.dt)); i?gx.lineTo(x,y):gx.moveTo(x,y); } gx.strokeStyle=s.col; gx.lineWidth=4; gx.stroke(); }
+  // legend
+  const hid='<span class="hid">···</span>'; let h="";
+  if(!playground){ const a=o&&recOf("hard"), b=o&&recOf("pillow");
+    h+='<div><i style="background:#F09A6B"></i>Hard surface: '+(o&&done.hard&&!(anim.on&&anim.which==="hard")? 'stop time <b>'+fms(a.dt)+'</b>, average force <b>'+fN(a.Favg)+'</b>' : hid)+'</div>';
+    h+='<div><i style="background:#5F8FE0"></i>Pillow: '+(o&&done.pillow&&!(anim.on&&anim.which==="pillow")? 'stop time <b>'+fms(b.dt)+'</b>, average force <b>'+fN(b.Favg)+'</b>' : hid)+'</div>';
+  } else {
+    h+='<div><i style="background:#F09A6B"></i>This drop: '+(pgRec&&live&&!anim.on? SURFS.find(s=>s.id===pgRec.surf).name+', '+fmt(pgRec.h,2)+' m: <b>'+fms(pgRec.dt)+'</b>, <b>'+fN(pgRec.Favg)+'</b>' : hid)+'</div>';
+    h+='<div><i style="background:#B9B0C9"></i>Last drop: '+(pgPrev? SURFS.find(s=>s.id===pgPrev.surf).name+', '+fmt(pgPrev.h,2)+' m: <b>'+fms(pgPrev.dt)+'</b>, <b>'+fN(pgPrev.Favg)+'</b>' : hid)+'</div>';
+  }
+  $("gleg").innerHTML=h;
+}
+
+/* ---------- drops ---------- */
+function startDrop(which){
+  const o=obj(); if(!o||anim.on) return;
+  if(which==="pg"){ pgPrev=pgRec; pgRec=impact(o,pgSurf,pgH); }
+  const rec=recOf(which); crashSay=null; camWhich=which; scrubR=null;
+  anim={on:true,which,t0:performance.now(),rec};
+  $("tagRec").classList.remove("hide"); $("scrubBox").classList.add("hide");
+  ["btnDrop1","btnDrop2","btnPgDrop","btnPhotos"].forEach(i=>$(i).disabled=true);
+  refreshShelf(); requestAnimationFrame(tick);
+}
+function tick(){
+  if(!anim.on) return;
+  const r=(performance.now()-anim.t0)/1000;
+  if(r>=clipLen(anim.rec)){ anim.on=false; onRecorded(anim.which); return; }
+  redraw(); requestAnimationFrame(tick);
+}
+function onRecorded(which){
+  $("tagRec").classList.add("hide");
+  if(which!=="pg"){ done[which]=true; }
+  camWhich=which; scrubR=null;
+  syncUI(); redraw(); save();
+}
+function setScrub(v){ const rec=recOf(camWhich); if(!rec) return; scrubR=(v/1000)*clipLen(rec); const c=clipAt(rec,scrubR), st=kin(rec,c.t); $("scrubT").textContent = st.tau<0? "falling, t = "+fmt(c.t,3)+" s" : "contact + "+fms(st.tau); redraw(); }
+$("scrub").oninput=e=>setScrub(+e.target.value);
+$("cam1").onclick=()=>{ if(!done.hard||anim.on) return; camWhich="hard"; scrubR=null; $("scrub").value=1000; syncUI(); redraw(); };
+$("cam2").onclick=()=>{ if(!done.pillow||anim.on) return; camWhich="pillow"; scrubR=null; $("scrub").value=1000; syncUI(); redraw(); };
+$("btnDrop1").onclick=()=>startDrop("hard");
+$("btnDrop2").onclick=()=>startDrop("pillow");
+$("btnPgDrop").onclick=()=>startDrop("pg");
+
+/* ---------- photos ---------- */
+function photoURL(which){
+  const o=obj(); const keepCam=camWhich, keepScrub=scrubR; camWhich=which; scrubR=null;
+  draw(restLive(which),{photo:true,caption:(which==="hard"?"Drop 1 · hard surface":"Drop 2 · pillow")+" · "+o.name+" · "+studentName});
+  const url=cv.toDataURL("image/png"); camWhich=keepCam; scrubR=keepScrub; redraw(); return url;
+}
+$("btnPhotos").onclick=()=>{
+  const items=[["hard","Drop 1: hard surface","impulse-drop-1-hard-surface.png"],["pillow","Drop 2: pillow","impulse-drop-2-pillow.png"]].filter(i=>done[i[0]]);
+  $("photoGrid").innerHTML=items.map(i=>{ const u=photoURL(i[0]); return '<figure><img src="'+u+'" alt="'+i[1]+'"><figcaption>'+i[1]+'</figcaption><a class="btn mint sm" style="text-decoration:none;display:inline-block" download="'+i[2]+'" href="'+u+'">Download photo</a></figure>'; }).join("");
+  $("ovPhotos").classList.add("on");
+};
+$("closePhotos").onclick=()=>$("ovPhotos").classList.remove("on");
+
+/* ---------- results check ---------- */
+$("btnRes").onclick=()=>{
+  const o=obj(), m=o.g/1000, v0=Math.sqrt(2*G*H), p0=m*v0;
+  const v=parseFloat($("inV").value), p=parseFloat($("inP").value), dp=parseFloat($("inDP").value);
+  if([v,p,dp].some(isNaN)){ $("resMsg").innerHTML='<div class="warn">Fill in all three first. Work them on your sheet, then type the answers here.</div>'; return; }
+  const r1=Math.abs(v-v0)/v0<=0.03, r2=Math.abs(p-p0)/p0<=0.05, r3m=Math.abs(Math.abs(dp)-p0)/p0<=0.05, r3=r3m&&dp<0;
+  if(r1&&r2&&r3){ res={v,p,dp,done:true}; crashSay=null; $("resMsg").innerHTML='<div class="ok">All three check out! v = '+fmt(v0,2)+' m/s, p = '+fmt(p0,3)+' kg·m/s, Δp = −'+fmt(p0,3)+' kg·m/s for BOTH drops.</div>'; syncUI(); redraw(); save(); return; }
+  const msg=[];
+  if(!r1) msg.push(Math.abs(v-2*G*H)<0.2? "1 · You found 2gh. Do not forget the SQUARE ROOT." : "1 · v is off. v = √(2 × 9.8 × 0.50). The mass is not in this one.");
+  if(!r2) msg.push(Math.abs(p-o.g*v0)/(o.g*v0)<=0.05? "2 · Right idea, but the mass must be in KILOGRAMS: "+o.g+" g = "+fmt(m,3)+" kg." : "2 · p is off. Multiply your mass in kg ("+fmt(m,3)+" kg) by your v.");
+  if(!r3) msg.push(r3m? "3 · Right size! But Δp = p(final) − p(initial) = 0 − p, so it comes out NEGATIVE." : "3 · Δp is off. The object ends at REST, so p(final) = 0. Subtract your p from that.");
+  crashSay="Not yet. Check the hints on the right, fix your sheet, and try again."; $("resMsg").innerHTML='<div class="bad">'+msg.join("<br>")+'</div>'; redraw();
+};
+$("btnResHint").onclick=()=>{ $("resMsg").innerHTML='<div class="warn">Go in order. 1: v = √(2gh) with h = 0.50 m. 2: p = m × v with m in KILOGRAMS. 3: both objects END at rest, so p(final) = 0 and Δp = 0 − p.</div>'; };
+
+/* ---------- compare table ---------- */
+function renderCmp(){
+  let h='<div></div><div class="hd">Stopping time (Δt)</div><div class="hd">Change in momentum (Δp)</div><div class="hd">Average force (F)</div>';
+  for(const row of ["hard","pillow"]){ h+='<div class="rw">'+(row==="hard"?"Hard surface":"Pillow")+'</div>';
+    for(let c=0;c<3;c++){ h+='<div class="seg">'+CMP_OPT[c].map(op=>'<button data-r="'+row+'" data-c="'+c+'" data-v="'+op+'" class="'+(cmp[row][c]===op?'on':'')+'"'+(cmp.done?' disabled':'')+'>'+op+'</button>').join("")+'</div>'; } }
+  $("cmp").innerHTML=h;
+  [...$("cmp").querySelectorAll("button")].forEach(b=>b.onclick=()=>{ if(cmp.done) return; cmp[b.dataset.r][+b.dataset.c]=b.dataset.v; renderCmp(); save(); });
+}
+$("btnCmp").onclick=()=>{
+  if(cmp.done) return;
+  if([...cmp.hard,...cmp.pillow].some(x=>x==null)){ $("cmpMsg").innerHTML='<div class="warn">Pick one choice in all six boxes.</div>'; return; }
+  const wrong=[0,1,2].filter(c=>cmp.hard[c]!==CMP_KEY.hard[c]||cmp.pillow[c]!==CMP_KEY.pillow[c]);
+  if(!wrong.length){ cmp.done=true; finished=true; crashSay=null; $("cmpMsg").innerHTML='<div class="ok">That is it! Same Δp, a LONGER stop, a SMALLER force. Mark the same choices on your lab sheet, then click Finish for your code.</div>'; renderCmp(); syncUI(); redraw(); save(); return; }
+  const tips=["Stopping time: play both videos again and compare the two stopwatches.","Change in momentum: look at your answer to question 3. Did it depend on the landing?","Average force: look at how TALL each curve is on the force graph."];
+  crashSay="Close! Look again at the column I flagged."; $("cmpMsg").innerHTML='<div class="bad">'+wrong.map(c=>tips[c]).join("<br>")+'</div>'; redraw();
+};
+
+/* ---------- UI render ---------- */
+function objSVG(o){
+  const m={egg:'<ellipse cx="23" cy="24" rx="13" ry="17" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><ellipse cx="18" cy="17" rx="3" ry="5" fill="#fff" opacity=".75"/>',
+    bal:'<circle cx="23" cy="25" r="16" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><path d="M20 6h6l-3 5z" fill="'+o.edge+'"/><ellipse cx="17" cy="19" rx="3" ry="5" fill="#fff" opacity=".6"/>',
+    tom:'<circle cx="23" cy="26" r="14" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><path d="M23 9l3 5 5-1-4 4 2 4-6-3-6 3 2-4-4-4 5 1z" fill="#6FC27A"/>',
+    grp:'<ellipse cx="23" cy="25" rx="10" ry="12" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><ellipse cx="19" cy="20" rx="2.5" ry="4" fill="#fff" opacity=".6"/><path d="M23 13v-6" stroke="#6FC27A" stroke-width="2.5"/>',
+    crk:'<rect x="9" y="10" width="28" height="28" rx="4" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><g fill="'+o.edge+'"><circle cx="16" cy="17" r="1.6"/><circle cx="30" cy="17" r="1.6"/><circle cx="23" cy="24" r="1.6"/><circle cx="16" cy="31" r="1.6"/><circle cx="30" cy="31" r="1.6"/></g>',
+    doh:'<circle cx="23" cy="25" r="15" fill="'+o.col+'" stroke="'+o.edge+'" stroke-width="2.5"/><ellipse cx="17" cy="19" rx="5" ry="3" fill="#fff" opacity=".6"/>'};
+  return '<svg viewBox="0 0 46 46">'+m[o.id]+'</svg>';
+}
+function refreshShelf(){
+  const lock = anim.on || (!playground && (done.hard||done.pillow));
+  $("shelf").innerHTML = OBJS.map(o=>'<div class="obj'+(o.id===objId?' active':'')+(lock?' lockedo':'')+'" data-id="'+o.id+'">'+objSVG(o)+'<div class="nm">'+o.name+'</div><div class="fm">'+o.g+' g</div></div>').join("");
+  [...$("shelf").children].forEach(el=>el.onclick=()=>{ objId=el.dataset.id; const o=obj(); crashSay=null; if(playground){ pgRec=null; pgPrev=null; camWhich=null; } syncUI(); redraw(); save(); });
+}
+function renderSteps(){
+  const items=[
+    ["Pick your object","Mass in grams. Convert to KILOGRAMS on your sheet.", !!objId],
+    ["Drop 1: hard surface","From 0.50 m. Watch what happens. Save the photo.", done.hard],
+    ["Drop 2: pillow","Same object, same 0.50 m. Watch the pillow sink.", done.pillow],
+    ["Results","v, p and Δp on your sheet, then check them here.", res.done],
+    ["Compare the landings","Stopping time, Δp and force for each landing.", cmp.done],
+  ];
+  const nowIdx=items.findIndex(i=>!i[2]);
+  $("steps").innerHTML=items.map((it,i)=>'<div class="step'+(it[2]?' done':(i===nowIdx?' now':''))+'"><div class="n">'+(it[2]?'✓':i+1)+'</div><div class="t"><b>'+it[0]+'</b>'+it[1]+'</div></div>').join("");
+  const n=items.filter(i=>i[2]).length; $("progTxt").textContent=n+" / 5 steps"; $("dots").innerHTML=items.map(i=>'<span class="dot'+(i[2]?' on':'')+'"></span>').join("");
+}
+function renderLedger(){
+  const o=obj(), hid='<span class="hid">···</span>', a=o&&recOf("hard"), b=o&&recOf("pillow");
+  const rows=[
+    ["Object", o? o.name : hid],
+    ["Mass m", o? o.g+" g = "+fmt(o.g/1000,3)+" kg" : hid],
+    ["Drop height h", "0.50 m"],
+    ["Drop 1 · hard surface", o&&done.hard? (a.broke? "it "+o.brk : "survived") : hid],
+    ["Drop 2 · pillow", o&&done.pillow? (b.broke? "it "+o.brk : "survived") : hid],
+    ["v before impact", res.done? fmt(res.v,2)+" m/s" : hid],
+    ["p before impact", res.done? fmt(res.p,3)+" kg·m/s" : hid],
+    ["Δp (both drops)", res.done? fmt(res.dp,3)+" kg·m/s" : hid],
+  ];
+  $("ledger").innerHTML=rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join("");
+}
+function syncUI(){
+  const o=obj();
+  $("tagO").textContent=o?o.name:"No object"; $("tagM").textContent=o? o.g+" g = "+fmt(o.g/1000,3)+" kg" : "— g";
+  $("tagH").textContent=(playground?fmt(pgH,2):"0.50")+" m drop";
+  if(o) $("objNote").innerHTML="<b>"+o.name+"</b>: mass <b>"+o.g+" g</b> = <b>"+fmt(o.g/1000,3)+" kg</b>. Write the mass in kilograms on your lab sheet.";
+  $("btnDrop1").disabled = !o||done.hard||anim.on; $("btnDrop2").disabled = !o||!done.hard||done.pillow||anim.on;
+  $("btnDrop1").textContent = done.hard? "✓ Drop 1 recorded" : "▶ Drop 1: hard surface"; $("btnDrop2").textContent = done.pillow? "✓ Drop 2 recorded" : "▶ Drop 2: pillow";
+  $("btnPhotos").disabled = !done.hard||anim.on; $("btnPgDrop").disabled=!o||anim.on;
+  $("stageHint").textContent = !o? "Pick an object to start." : !done.hard? "Bagged and held at 0.50 m. Drop 1 first." : !done.pillow? "Drop 1 recorded. Now the pillow, from the SAME 0.50 m." : "Both drops recorded. Scrub the videos, save your photos, then do the math.";
+  const showScrub = !playground && (done.hard||done.pillow) && !anim.on; $("scrubBox").classList.toggle("hide",!showScrub);
+  $("cam1").classList.toggle("on",camWhich==="hard"); $("cam2").classList.toggle("on",camWhich==="pillow"); $("cam1").disabled=!done.hard; $("cam2").disabled=!done.pillow;
+  if(showScrub && scrubR==null){ $("scrub").value=1000; $("scrubT").textContent="end of the video"; }
+  $("resCard").classList.toggle("locked", playground || !(done.hard&&done.pillow)); $("cmpCard").classList.toggle("locked", playground || !res.done);
+  ["inV","inP","inDP"].forEach(i=>$(i).disabled=res.done); $("btnRes").disabled=res.done;
+  $("btnCmp").disabled=cmp.done; $("finishBtn").disabled=!finished;
+  refreshShelf(); renderSteps(); renderLedger(); renderCmp();
+}
+
+/* ---------- code + report ---------- */
+function makeCode(){
+  const oi=OBJS.findIndex(o=>o.id===objId), o=OBJS[oi], p3=Math.round(o.g/1000*Math.sqrt(2*G*H)*1000);
+  const chk=String.fromCharCode(65 + ((oi*5 + p3*7 + nameHash(studentName)) % 26));
+  return "DROP-"+(oi+1)+String(p3).padStart(3,"0")+"-"+chk;
+}
+$("finishBtn").onclick=()=>{
+  if(!finished) return; const o=obj(), a=recOf("hard"), b=recOf("pillow");
+  $("repWho").innerHTML="<b>"+studentName+"</b> · drop height 0.50 m · g = 9.8 m/s² · "+new Date().toLocaleDateString();
+  $("repBody").innerHTML='<table><tr><th>Data and observations</th><th></th></tr><tr><td>Object</td><td>'+o.name+'</td></tr><tr><td>Mass m</td><td>'+fmt(o.g/1000,3)+' kg</td></tr><tr><td>Drop height h</td><td>0.50 m</td></tr><tr><td>Drop 1 · hard surface</td><td>it '+o.brk+'</td></tr><tr><td>Drop 2 · pillow</td><td>survived</td></tr>'+
+    '<tr><th>Results</th><th></th></tr><tr><td>1 · v just before impact</td><td>'+fmt(res.v,2)+' m/s</td></tr><tr><td>2 · p just before impact</td><td>'+fmt(res.p,3)+' kg·m/s</td></tr><tr><td>3 · Δp for both drops</td><td>'+fmt(res.dp,3)+' kg·m/s</td></tr>'+
+    '<tr><th>Compare the landings</th><th></th></tr><tr><td>Hard surface</td><td>'+cmp.hard.join(" · ")+'</td></tr><tr><td>Pillow</td><td>'+cmp.pillow.join(" · ")+'</td></tr>'+
+    '<tr><th>High-speed camera</th><th></th></tr><tr><td>Hard surface stop</td><td>'+fms(a.dt)+' · about '+fN(a.Favg)+'</td></tr><tr><td>Pillow stop</td><td>'+fms(b.dt)+' · about '+fN(b.Favg)+'</td></tr></table>'+
+    '<p>Copy these onto your lab sheet. "What happened?", "What did you see?" and question 4 (the explanation) are YOURS to write.</p>';
+  $("repCode").textContent=makeCode(); $("ovReport").classList.add("on"); save();
+};
+$("copyCode").onclick=()=>{ const c=$("repCode").textContent; (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{$("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500);}).catch(()=>{ const r=document.createRange(); r.selectNodeContents($("repCode")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); };
+$("printRep").onclick=()=>window.print();
+$("closeRep").onclick=()=>$("ovReport").classList.remove("on");
+
+/* ---------- playground ---------- */
+function openPlayground(){
+  playground=true; $("ovReport").classList.remove("on"); $("lvlPill").textContent="Playground"; $("playCard").classList.remove("hide");
+  $("labControls").classList.add("hide"); $("pgControls").classList.remove("hide"); camWhich=null; scrubR=null; pgRec=null; pgPrev=null; crashSay=null;
+  $("surfBtns").innerHTML=SURFS.map(s=>'<button data-id="'+s.id+'" class="'+(s.id===pgSurf?'active':'')+'">'+s.name+'</button>').join("");
+  [...$("surfBtns").children].forEach(b=>b.onclick=()=>{ if(anim.on) return; pgSurf=b.dataset.id; camWhich=null; [...$("surfBtns").children].forEach(x=>x.classList.toggle("active",x===b)); syncUI(); redraw(); });
+  syncUI(); redraw(); save();
+}
+$("pgH").oninput=e=>{ if(anim.on){ e.target.value=Math.round(pgH*100); return; } pgH=(+e.target.value)/100; $("pgHv").textContent=fmt(pgH,2)+" m"; camWhich=null; syncUI(); redraw(); };
+$("playBtn").onclick=openPlayground;
+
+/* ---------- start ---------- */
+function begin(resume){
+  if(!resume){ objId=null; done={hard:false,pillow:false}; res={v:null,p:null,dp:null,done:false}; cmp={hard:[null,null,null],pillow:[null,null,null],done:false}; finished=false; playground=false; }
+  $("ovStart").classList.remove("on"); camWhich = done.pillow? "pillow" : done.hard? "hard" : null;
+  if(resume && res.done){ $("inV").value=fmt(res.v,2); $("inP").value=fmt(res.p,3); $("inDP").value=fmt(res.dp,3); }
+  if(resume && playground){ openPlayground(); return; }
+  syncUI(); redraw(); save();
+}
+$("btnStart").onclick=()=>{ const n=$("inName").value.trim(); if(n.split(/\s+/).length<2){ $("startErr").textContent="Please type your first AND last name."; $("startErr").style.color="#C23B52"; return; } studentName=n; begin(false); };
+$("btnResume").onclick=()=>{ const d=load(); if(!d) return; ({studentName,objId,done,res,cmp,finished,playground}=d); begin(true); };
+$("btnWipe").onclick=()=>{ localStorage.removeItem("impulseLab"); $("btnResume").classList.add("hide"); $("btnWipe").classList.add("hide"); $("inName").value=""; };
+(function init(){ const d=load(); if(d&&d.studentName){ $("btnResume").classList.remove("hide"); $("btnWipe").classList.remove("hide"); $("inName").value=d.studentName; $("btnResume").textContent="Continue as "+d.studentName; } syncUI(); redraw(); })();
+// keep Crash breathing and his bubble current while nothing else animates
+setInterval(()=>{ if(!anim.on && !document.hidden) { const l=currentLive(); draw(l); } }, 120);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(redraw);
+</script>
+</body></html>

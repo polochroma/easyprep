@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recoil and Propulsion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+  --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+  --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+  --pass:#6FD3A0; --fail:#FF8A9B;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+button{font-family:inherit;color:var(--text)}
+input,select{font-family:inherit;color:var(--text)}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:640px){header h1{font-size:18px}}
+header h1 span{color:var(--skyD)}
+.logo{width:30px;height:30px;border-radius:50%;background:var(--peachD);box-shadow:inset -6px -6px 0 rgba(0,0,0,.08);position:relative}
+.logo:after{content:"";position:absolute;left:7px;top:8px;width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--lemon);color:#6B5F80}
+.spacer{flex:1}
+.prog{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;background:#EADFCE;border:2px solid #fff;box-shadow:0 0 0 2px #EADFCE}
+.dot.on{background:var(--pass);box-shadow:0 0 0 2px var(--pass)}
+.dot.half{background:var(--lemonD);box-shadow:0 0 0 2px var(--lemonD)}
+.btn{border:0;border-radius:14px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.10);transition:transform .08s,box-shadow .08s;background:var(--sky);color:#2E2745}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.10)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.mint{background:var(--mint)} .btn.lav{background:var(--lav)} .btn.peach{background:var(--peach)} .btn.lemon{background:var(--lemon)} .btn.pink{background:var(--pink)}
+.btn.ghost{background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:12px}
+.btn.big{font-size:16px;padding:12px 22px}
+main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:16px;padding:16px 18px 28px;max-width:1380px;width:100%;margin:0 auto}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}.col-mid{grid-column:1/-1;order:-1}}
+@media(max-width:640px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+.card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+.card + .card{margin-top:14px}
+.card.locked{opacity:.55;pointer-events:none}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.jump{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.jump:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.jump.active{border-color:var(--sky);background:#EEF5FF}
+.jump svg{width:44px;height:56px;display:block;margin:0 auto}
+.jump .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.jump .fm{font-size:10px;color:var(--muted);font-weight:600}
+.jump.lockedj{pointer-events:none;opacity:.55}
+.bandrow{display:flex;align-items:center;gap:8px;margin:8px 0;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:16px;padding:8px 10px}
+.bandrow .sw{width:34px;height:22px;border-radius:11px;border:3px solid;flex:0 0 auto}
+.bandrow .nm{flex:1;font-size:13px;font-weight:700;line-height:1.15}
+.bandrow .nm small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+.bandrow .ct{display:flex;align-items:center;gap:6px}
+.bandrow .ct button{width:30px;height:30px;border-radius:50%;border:0;background:var(--lav);font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.10);line-height:1}
+.bandrow .ct button:disabled{opacity:.35;cursor:not-allowed}
+.bandrow .ct b{min-width:26px;text-align:center;font-size:17px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:14px;background:#FAF7F2;border:2px solid transparent}
+.step.now{background:#FFF4B8;border-color:#F0DC8A}
+.step.done{background:#E6F8EF}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--lav);color:#3D3356;font-weight:700;display:grid;place-items:center;font-size:13px}
+.step.done .n{background:var(--pass);color:#fff}
+.step .t{font-size:13px;line-height:1.25}
+.step .t b{display:block;font-size:13.5px}
+.stage{position:relative;background:#F3EEF9;border:3px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+canvas{display:block;width:100%;height:auto}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#6B5F80}
+.tag.rec{background:#FFECEF;border-color:#FFB7D5;color:#E0556C}
+.tag.rec:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#E0556C;margin-right:6px;animation:blink 1s infinite}
+.tag.go{background:#E6F8EF;border-color:#9FE6C4;color:#2E7D55}
+@keyframes blink{50%{opacity:.2}}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:10px;background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 12px}
+.scrub input[type=range]{flex:1;accent-color:var(--skyD)}
+.scrub .tm{font-weight:700;font-size:13px;color:var(--muted);min-width:70px;text-align:right}
+.scrub .lab{font-size:12px;font-weight:700;color:var(--muted)}
+.field{display:flex;align-items:center;gap:8px;margin:8px 0}
+.field label{font-size:13px;font-weight:700;flex:1;line-height:1.2}
+.field input{width:104px;border:3px solid var(--line);border-radius:12px;padding:7px 10px;font-size:15px;font-weight:700;text-align:right;background:#FFFBF5}
+.field input:focus{outline:none;border-color:var(--sky)}
+.field input:disabled{background:#F6F1EA;color:#9A8FB0}
+.field .u{font-size:13px;color:var(--muted);font-weight:700;min-width:28px}
+.note{font-size:12.5px;line-height:1.35;color:#6B5F80;background:#FAF7F2;border-radius:12px;padding:8px 10px;margin:6px 0}
+.ok{background:#E6F8EF;color:#2E7D55;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bad{background:#FFECEF;color:#C23B52;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.warn{background:#FFF4B8;color:#7A5B00;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:10px 8px 0;background:#FFFBF5;border:3px solid var(--line);border-radius:16px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bar .fill{width:70%;border-radius:10px 10px 4px 4px;transition:height .06s linear;min-height:3px}
+.bar .lb{font-size:11px;font-weight:700;color:#6B5F80;margin:6px 0 4px;text-align:center;line-height:1.1}
+.bar .val{font-size:11px;font-weight:700;color:var(--muted);height:14px}
+.ledger{width:100%;border-collapse:collapse;font-size:12.5px}
+.ledger td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700}
+.ledger td:last-child{text-align:right;font-family:Nunito,monospace;font-variant-numeric:tabular-nums}
+.ledger .hid{color:#C6CFDC;letter-spacing:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.3}
+.hide{display:none!important}
+.ov{position:fixed;inset:0;background:rgba(74,63,92,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.ov.on{display:flex}
+.modal{background:#fff;border:3px solid var(--line);border-radius:24px;padding:22px;max-width:640px;width:100%;box-shadow:0 10px 0 var(--line);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px}
+.modal h2 span{color:var(--skyD)}
+.modal p{font-size:14px;line-height:1.4;margin:6px 0 12px}
+.modal input.name{width:100%;border:3px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;font-weight:700;background:#FFFBF5}
+.modal input.name:focus{outline:none;border-color:var(--sky)}
+.code{font-family:Nunito,monospace;font-weight:800;font-size:22px;letter-spacing:1px;background:#FFF4B8;border:3px dashed #F0DC8A;border-radius:14px;padding:10px 14px;display:inline-block;margin:6px 0}
+.rep table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.rep th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.rep td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.rep td:last-child{text-align:right}
+.verdict{font-size:20px;font-weight:800;border-radius:16px;padding:12px 14px;margin:8px 0}
+.verdict.good{background:#E6F8EF;color:#2E7D55}
+.verdict.meh{background:#FFF4B8;color:#7A5B00}
+.verdict.crash{background:#FFECEF;color:#C23B52}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;padding:0 18px 18px;line-height:1.4}
+@media print{header,.col-left,.col-right,.controls,.scrub,.foot{display:none!important}main{display:block}.ov{position:static;background:none}.modal{box-shadow:none;max-width:none}}
+</style>
+<style>
+.obj{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.obj:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.obj.active{border-color:var(--sky);background:#EEF5FF}
+.obj svg{width:46px;height:46px;display:block;margin:0 auto}
+.obj .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.obj.lockedo{pointer-events:none;opacity:.55}
+.shelfLab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px}
+.shelfLab:first-of-type{margin-top:0}
+.hrow{display:flex;align-items:center;gap:10px;margin-top:4px;font-weight:700;font-size:13px}
+.hrow input{flex:1;accent-color:var(--skyD)}
+.gwrap{background:#FFFBF5;border:3px solid var(--line);border-radius:16px;padding:6px}
+.gwrap canvas{width:100%;display:block}
+.dt{display:grid;grid-template-columns:1fr 92px 92px;gap:6px;align-items:center}
+.dt .hd{font-size:10.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.15;text-transform:uppercase}
+.dt .rw{font-size:12.5px;font-weight:700;line-height:1.15}
+.dt input{width:100%;border:3px solid var(--line);border-radius:12px;padding:7px 8px;font-size:14px;font-weight:700;text-align:right;background:#FFFBF5}
+.dt input:focus{outline:none;border-color:var(--sky)}
+.dt input:disabled{background:#F6F1EA;color:#9A8FB0}
+.fbtn{border:2px solid var(--line);border-radius:10px;background:#fff;font-weight:700;font-size:12px;padding:6px 9px;cursor:pointer;white-space:nowrap}
+.fbtn:hover{background:#FFF4B8}
+.stage canvas{width:100%;display:block}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1><i class="logo"></i>RECOIL <span>&amp; PROPULSION</span> LAB <span class="pill" id="lvlPill">Virtual Lab</span></h1>
+  <div class="spacer"></div>
+  <div class="prog"><span id="progTxt">0 / 5 steps</span><div class="dots" id="dots"></div></div>
+  <button class="btn lemon sm" id="finishBtn" disabled>Finish &amp; get code →</button>
+</header>
+
+<main>
+<section class="col-left">
+  <div class="card" id="gearCard">
+    <h2>Materials</h2>
+    <div class="shelfLab">Student (the thrower)</div>
+    <div class="shelf" id="shelfR"></div>
+    <div class="shelfLab">Rolling object</div>
+    <div class="shelf" id="shelfO"></div>
+    <div class="shelfLab">Heavy object</div>
+    <div class="shelf" id="shelfH"></div>
+    <div class="note" id="gearNote">Pick one of each. Masses are NOT printed here: you will measure them on the bathroom scale in Part 1.</div>
+  </div>
+  <div class="card hide" id="playCard">
+    <h2>Playground controls</h2>
+    <div class="hrow"><span>Throw strength</span><input type="range" id="pgS" min="50" max="110" step="5" value="100"><span id="pgSv">100%</span></div>
+    <div class="note" id="pgNote">Swap the heavy object or the rolling object and throw again. What makes the recoil FASTER?</div>
+  </div>
+  <div class="card">
+    <h2>Procedure</h2>
+    <div class="steps" id="steps"></div>
+  </div>
+</section>
+
+<section class="col-mid">
+  <div class="stage">
+    <canvas id="cv" width="900" height="720"></canvas>
+    <div class="hud"><span class="tag" id="tagG">Pick your materials</span><span class="tag go hide" id="tagP">at rest: p total = 0</span><span class="tag rec hide" id="tagRec">SLOW-MO REC</span></div>
+  </div>
+  <div class="controls" id="labControls">
+    <button class="btn" id="btnW1" disabled>⚖ Weigh student</button>
+    <button class="btn" id="btnW2" disabled>⚖ Weigh rolling object</button>
+    <button class="btn" id="btnW3" disabled>⚖ Weigh heavy object</button>
+    <button class="btn peach big hide" id="btnThrow">▶ Throw (record in slow-mo)</button>
+    <span class="hint" id="stageHint">Pick a student, a rolling object and a heavy object.</span>
+  </div>
+  <div class="controls hide" id="pgControls">
+    <button class="btn peach big" id="btnPgThrow">▶ Throw</button>
+    <span class="hint" id="pgHint">Playground: any materials, any throw strength.</span>
+  </div>
+  <div class="scrub hide" id="scrubBox">
+    <button class="fbtn" id="fPrev">◀ frame</button>
+    <input type="range" id="scrub" min="0" max="260" value="260">
+    <button class="fbtn" id="fNext">frame ▶</button>
+    <span class="tm" id="scrubT"></span>
+  </div>
+</section>
+
+<section class="col-right">
+  <div class="card">
+    <h2>Momentum of each part</h2>
+    <div class="gwrap"><canvas id="gv" width="440" height="216"></canvas></div>
+    <div class="hint">Forward (the throw direction) is positive. Backward is NEGATIVE.</div>
+  </div>
+
+  <div class="card locked" id="c1">
+    <h2>Part 1 · System mass data</h2>
+    <div class="note">Read each mass off the bathroom scale, in kilograms.</div>
+    <div class="field"><label>Student (m<sub>student</sub>)</label><input id="inMs" type="number" step="0.1" placeholder="0.0"><span class="u">kg</span></div>
+    <div class="field"><label>Rolling object (m<sub>roller</sub>)</label><input id="inMr" type="number" step="0.1" placeholder="0.0"><span class="u">kg</span></div>
+    <div class="field"><label>Total system mass 1 (m<sub>1</sub> = m<sub>student</sub> + m<sub>roller</sub>)</label><input id="inM1" type="number" step="0.1" placeholder="0.0"><span class="u">kg</span></div>
+    <div class="field"><label>Heavy object mass (m<sub>2</sub>)</label><input id="inM2" type="number" step="0.1" placeholder="0.0"><span class="u">kg</span></div>
+    <button class="btn mint" id="btnC1">✓ Check Part 1</button>
+    <div id="msg1"></div>
+  </div>
+
+  <div class="card locked" id="c2">
+    <h2>Part 2 · Experimental data</h2>
+    <div class="note">Scrub the slow-mo video to a frame AFTER the release. Read each distance off its tape (use the close-ups) and the time off the video clock.</div>
+    <div class="dt">
+      <div class="hd" style="text-align:left">Measurement</div><div class="hd">Heavy object (m<sub>2</sub>)</div><div class="hd">Student &amp; roller (m<sub>1</sub>)</div>
+      <div class="rw">Distance traveled (d), m</div><input id="inD2" type="number" step="0.01" placeholder="0.00"><input id="inD1" type="number" step="0.01" placeholder="0.00">
+      <div class="rw">Time of travel (t), s</div><input id="inT2" type="number" step="0.01" placeholder="0.00"><input id="inT1" type="number" step="0.01" placeholder="0.00">
+      <div class="rw">Calculated velocity (v = d/t), m/s</div><input id="inV2" type="number" step="0.01" placeholder="0.00"><input id="inV1" type="number" step="0.01" placeholder="0.00">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn mint" id="btnC2">✓ Check Part 2</button><button class="btn ghost sm" id="btnH2">Hint</button></div>
+    <div id="msg2"></div>
+  </div>
+
+  <div class="card locked" id="c3">
+    <h2>Part 3 · Momentum calculations</h2>
+    <div class="note">p = mv. Velocity is a vector: movement in the opposite direction is a NEGATIVE value.</div>
+    <div class="field"><label>1 · Heavy object, p<sub>2</sub> = m<sub>2</sub> × v<sub>object</sub></label><input id="inP2" type="number" step="0.01" placeholder="0.00"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>2 · Student/roller, p<sub>1</sub> = m<sub>1</sub> × v<sub>student</sub></label><input id="inP1" type="number" step="0.01" placeholder="0.00"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>3 · Total, p<sub>total</sub> = p<sub>1</sub> + p<sub>2</sub></label><input id="inPT" type="number" step="0.01" placeholder="0.00"><span class="u">kg·m/s</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn lav" id="btnC3">✓ Check Part 3</button><button class="btn ghost sm" id="btnH3">Hint</button></div>
+    <div id="msg3"></div>
+  </div>
+
+  <div class="card">
+    <h2>Lab notes</h2>
+    <table class="ledger"><tbody id="ledger"></tbody></table>
+    <div class="hint">Copy these onto your lab sheet as you go. Part 4 (the analysis questions) is yours to write there.</div>
+  </div>
+</section>
+</main>
+<div class="foot">Recoil &amp; Propulsion Lab · EasyPrep STEM · A simulated throw. Real wheels and real floors add more friction than these do.</div>
+</div>
+
+<div class="ov on" id="ovStart">
+  <div class="modal">
+    <h2>Recoil <span>&amp; Propulsion</span> Lab</h2>
+    <p>Sit perfectly still on something that rolls, then throw a heavy object forward. You never push off the ground. So why do you roll BACKWARD? Follow your lab sheet part by part: this lab has the same Parts 1, 2 and 3.</p>
+    <p style="margin-bottom:4px"><b>Your name (first and last).</b> It goes on your lab report.</p>
+    <input class="name" id="inName" placeholder="e.g. Jordan Rivera" autocomplete="off">
+    <div class="note" style="margin-top:12px">Keep your lab sheet open in another tab and fill it in as you go. Finish Parts 1 to 3 here to get your <b>completion code</b>. Your teacher will ask for this code.</div>
+    <div style="margin-top:10px"><button class="btn peach big" id="btnStart">Start the lab →</button></div>
+    <p class="hint" id="startErr"></p>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm hide" id="btnResume">Continue where I left off</button><button class="btn ghost sm hide" id="btnWipe">Start over</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ovReport">
+  <div class="modal rep">
+    <h2>Recoil <span>lab report</span></h2>
+    <p id="repWho"></p>
+    <div id="repBody"></div>
+    <p><b>Your completion code.</b> Type it into the code box on your lab sheet:</p>
+    <div class="code" id="repCode">—</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn mint" id="copyCode">Copy code</button>
+      <button class="btn ghost" id="printRep">Print / save PDF</button>
+      <button class="btn ghost" id="closeRep">Back to the lab</button>
+      <button class="btn lemon" id="playBtn">🎮 Open the playground</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ---------- constants ---------- */
+const G = 9.8, VY0 = 1.8, T_PRE = 0.6, T_END = 2.0, RATE = 0.45;
+const FLOOR = 548, X0 = 320, PXM = 185, ZP = 560;
+const RIDERS = [
+  {id:"ana", name:"Ana", kg:48.0, adj:0.00, hair:"#6B3F2A", shirt:"#9FE6C4", shirtD:"#5EC79A", pants:"#6B5F80"},
+  {id:"ben", name:"Ben", kg:58.0, adj:0.15, hair:"#2E2745", shirt:"#8FB8FF", shirtD:"#5F8FE0", pants:"#4A3F5C"},
+  {id:"cam", name:"Cam", kg:68.0, adj:0.30, hair:"#E8A917", shirt:"#FFB7D5", shirtD:"#F08AB4", pants:"#5B6B8A"},
+];
+const ROLLERS = [
+  {id:"skate", name:"Skateboard",   kg:2.8,  a:0.015, low:true},
+  {id:"chair", name:"Office chair", kg:11.6, a:0.030, low:false},
+  {id:"dolly", name:"Wooden dolly", kg:5.4,  a:0.020, low:true},
+];
+const HEAVY = [
+  {id:"ball", name:"Medicine ball",   kg:4.0, v:4.0, r:17},
+  {id:"pack", name:"Loaded backpack", kg:7.5, v:3.0, r:20},
+];
+
+/* ---------- state ---------- */
+let studentName="", sel={r:null,o:null,h:null};
+let weighed={s:false,r:false,h:false}, weighNow=null, weighT0=0;
+let res1={done:false}, res2={done:false}, res3={done:false};
+let thrown=false, finished=false, playground=false, pgS=1.0;
+let anim={on:false,t0:0}, tau=T_END, say=null;
+
+const $ = id => document.getElementById(id);
+const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+const sgn = (x,d=2) => (x>=0?"+":"−")+fmt(Math.abs(x),d);
+const r1 = x => Math.round(x*10)/10, r2 = x => Math.round(x*100)/100;
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+const HH = () => nameHash(studentName);
+const R = () => RIDERS[sel.r], O = () => ROLLERS[sel.o], HV = () => HEAVY[sel.h];
+const ready = () => sel.r!=null && sel.o!=null && sel.h!=null;
+function mS(){ return r1(R().kg + ((HH()*7)%19-9)/10); }
+function mR(){ return r1(O().kg + ((HH()*3)%7-3)/10); }
+function mH(){ return r1(HV().kg + ((HH()*5)%5-2)/10); }
+function m1(){ return r1(mS()+mR()); }
+function v2t(){ return r2((HV().v + R().adj + ((HH()*11)%11-5)/20) * (playground? pgS : 1)); }
+function v10(){ return mH()*v2t()/m1(); }
+function seatH(){ return O().id==="skate"?22 : O().id==="chair"?88 : 27; }       // px above the floor
+function h0(){ return (seatH()+40)/PXM; }
+function tLand(){ const rM=HV().r/PXM, dh=h0()-rM; return (VY0+Math.sqrt(VY0*VY0+2*G*dh))/G; }
+function x2(t){ return t<=0?0 : v2t()*Math.min(t,tLand()); }
+function y2(t){ const tl=tLand(); if(t<=0) return h0(); if(t>=tl) return HV().r/PXM; return h0()+VY0*t-0.5*G*t*t; }
+function x1(t){ return t<=0?0 : Math.max(0, v10()*t-0.5*O().a*t*t); }
+
+function save(){ try{ localStorage.setItem("recoilLab", JSON.stringify({studentName,sel,weighed,res1,res2,res3,thrown,finished,playground})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("recoilLab")||"null"); }catch(e){ return null; } }
+
+/* ---------- drawing helpers ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d");
+function rr(x,y,w,h,r,fill,stroke,lw){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||3;ctx.stroke();} }
+function circ(x,y,r,fill,stroke,lw){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function ell(x,y,rx,ry,fill,stroke,lw){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function line(x1,y1,x2,y2,col,lw,dash){ ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=lw||2; ctx.lineCap="round"; if(dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore(); }
+function txt(s,x,y,size,col,align,weight){ ctx.font=(weight||700)+" "+size+"px Fredoka, Nunito, sans-serif"; ctx.fillStyle=col||"#4A3F5C"; ctx.textAlign=align||"center"; ctx.fillText(s,x,y); }
+const SKIN="#FFD9C2", SKIND="#F0B79A", DARK="#3D3356";
+
+function drawRoom(){
+  const g=ctx.createLinearGradient(0,0,0,FLOOR); g.addColorStop(0,"#F3EEF9"); g.addColorStop(1,"#FBF4EC");
+  ctx.fillStyle=g; ctx.fillRect(0,0,900,FLOOR);
+  ctx.fillStyle="rgba(201,182,255,.16)"; for(let x=40;x<900;x+=120) ctx.fillRect(x,0,3,FLOOR);
+  rr(456,150,150,126,14,"#DCEBFF","#C9B6FF",6); line(531,153,531,273,"#C9B6FF",5); line(459,213,603,213,"#C9B6FF",5);
+  ell(492,188,20,10,"#fff"); ell(506,181,14,9,"#fff"); ell(570,246,18,9,"#fff"); circ(574,180,11,"#FFE88A");
+  ctx.fillStyle="#EADFCE"; ctx.fillRect(0,FLOOR,900,720-FLOOR);
+  ctx.fillStyle="#DCCDB6"; ctx.fillRect(0,FLOOR,900,4);
+}
+function drawHead(r,cx,cy){
+  circ(cx-3,cy-3,25,r.hair);
+  if(r.id==="ana"){ ell(cx-29,cy+6,8,15,r.hair); circ(cx-24,cy-8,4,"#FF8A8A"); }
+  if(r.id==="cam"){ [[-18,-20],[-6,-27],[8,-26],[-25,-8]].forEach(([a,b])=>circ(cx+a,cy+b,8,r.hair)); }
+  circ(cx+2,cy+3,21,SKIN,SKIND,2);
+  circ(cx+11,cy+1,3.2,DARK); circ(cx+12,cy,1,"#fff");
+  ctx.fillStyle="rgba(240,138,180,.5)"; ctx.beginPath(); ctx.arc(cx+13,cy+10,4.5,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle=DARK; ctx.lineWidth=2; ctx.lineCap="round"; ctx.beginPath(); ctx.arc(cx+7,cy+9,5,0.25,Math.PI-0.9); ctx.stroke();
+}
+function drawHeavy(h,x,y){
+  if(h.id==="ball"){ circ(x,y,h.r,"#F26D7D","#C23B52",2.5); ctx.strokeStyle="#C23B52"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x-h.r*1.1,y,h.r*1.25,-0.55,0.55); ctx.stroke(); ctx.beginPath(); ctx.arc(x+h.r*1.1,y,h.r*1.25,Math.PI-0.55,Math.PI+0.55); ctx.stroke(); ell(x-6,y-8,4,3,"rgba(255,255,255,.55)"); }
+  else { rr(x-17,y-20,34,40,10,"#9FE6C4","#5EC79A",2.5); rr(x-11,y-2,22,15,5,"#C9F2DE","#5EC79A",2); line(x-6,y-20,x-6,y-27,"#5EC79A",3); line(x+6,y-20,x+6,y-27,"#5EC79A",3); line(x-6,y-27,x+6,y-27,"#5EC79A",3); circ(x,y+5,2,"#5EC79A"); }
+}
+function drawRoller(o,xp,fl){
+  if(o.id==="skate"){ const sy=fl-22; rr(xp-104,sy,108,8,4,"#F09A6B","#D97B4A",2.5); [xp-84,xp-16].forEach(x=>{ circ(x,fl-7,7,"#4A3F5C","#2E2745",2); circ(x,fl-7,2.5,"#C6CFDC"); }); return sy; }
+  if(o.id==="chair"){ const sy=fl-88;
+    line(xp-108,fl-13,xp-22,fl-13,"#6B5F80",5); line(xp-65,fl-13,xp-65,sy+12,"#6B5F80",6);
+    [xp-106,xp-65,xp-24].forEach(x=>circ(x,fl-6,6,"#4A3F5C","#2E2745",2));
+    rr(xp-106,sy-66,12,70,6,"#8FB8FF","#5F8FE0",2.5); rr(xp-102,sy,74,13,6,"#8FB8FF","#5F8FE0",2.5); return sy; }
+  const sy=fl-27; rr(xp-108,sy,112,11,3,"#E3C58F","#C39A52",2.5); [xp-80,xp-52,xp-24].forEach(x=>line(x,sy+3,x,sy+8,"#C39A52",1.5));
+  [xp-94,xp-12].forEach(x=>{ circ(x,fl-8,8,"#4A3F5C","#2E2745",2); circ(x,fl-8,3,"#C6CFDC"); }); return sy;
+}
+// seated rider. xp = front reference of the roller, sy = seat top, arm in [-0.3, 1]
+function handPos(xp,sy,arm){ return {x:xp-30+30*arm, y:sy-36-4*arm}; }
+function drawRider(r,xp,sy,arm,low,heavy){
+  const hipX=xp-62, shX=hipX+6, shY=sy-42, hd=handPos(xp,sy,arm);
+  line(shX-4,shY+2,hd.x-3,hd.y+3,SKIND,9);                                   // back arm
+  rr(hipX-16,sy-54,33,56,14,r.shirt,r.shirtD,2.5);
+  ctx.lineCap="round";
+  if(low){ line(hipX+2,sy-7,hipX+32,sy-30,r.pants,13); line(hipX+32,sy-30,hipX+52,sy-6,r.pants,12); ell(hipX+57,sy-4,10,5.5,"#fff",DARK,2); }
+  else   { line(hipX+2,sy-7,hipX+38,sy-7,r.pants,13); line(hipX+38,sy-7,hipX+41,sy+30,r.pants,12); ell(hipX+46,sy+35,10,5.5,"#fff",DARK,2); }
+  drawHead(r,hipX+3,sy-76);
+  if(heavy) drawHeavy(heavy,hd.x,hd.y);
+  line(shX,shY,hd.x,hd.y,SKIN,9); circ(shX,shY,6.5,r.shirt,r.shirtD,2); circ(hd.x,hd.y,5.5,SKIN,SKIND,2);
+}
+function drawStand(r,x,fl){
+  line(x-7,fl-46,x-7,fl-8,r.pants,12); line(x+7,fl-46,x+7,fl-8,r.pants,12); ell(x-5,fl-5,10,5.5,"#fff",DARK,2); ell(x+10,fl-5,10,5.5,"#fff",DARK,2);
+  line(x-15,fl-90,x-17,fl-58,SKIND,9);
+  rr(x-16,fl-100,33,58,14,r.shirt,r.shirtD,2.5);
+  drawHead(r,x+1,fl-122);
+  line(x+10,fl-88,x+14,fl-56,SKIN,9); circ(x+10,fl-88,6.5,r.shirt,r.shirtD,2);
+}
+function drawPointer(x,fl){ ctx.fillStyle="#E0556C"; ctx.beginPath(); ctx.moveTo(x-6,fl-4); ctx.lineTo(x+6,fl-4); ctx.lineTo(x,fl+7); ctx.closePath(); ctx.fill(); }
+
+/* ---------- tapes + close-ups ---------- */
+function drawTapes(){
+  const y=FLOOR+8, h=15, xe=X0+3.0*PXM, xb=X0-1.5*PXM;
+  rr(X0,y,xe-X0,h,3,"#FFE88A","#E8C94A",2); rr(xb,y,X0-xb,h,3,"#BFEFD9","#5EC79A",2);
+  ctx.strokeStyle="#7A5B00"; ctx.lineWidth=1.2;
+  for(let i=1;i<=30;i++){ const x=X0+i*0.1*PXM; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+(i%5?5:10)); ctx.stroke(); if(i%5===0) txt(fmt(i/10,1),x,y+h+13,11,"#7A5B00"); }
+  ctx.strokeStyle="#2E7D55";
+  for(let i=1;i<=15;i++){ const x=X0-i*0.1*PXM; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+(i%5?5:10)); ctx.stroke(); if(i%5===0) txt(fmt(i/10,1),x,y+h+13,11,"#2E7D55"); }
+  line(X0,FLOOR-10,X0,y+h+2,"#E0556C",2.5,[5,4]); txt("START 0",X0,y+h+13,11,"#C23B52");
+  txt("◀ ROLLER TAPE (meters backward)",xb+2,y+h+30,11,"#2E7D55","left"); txt("OBJECT TAPE (meters forward) ▶",xe,y+h+30,11,"#7A5B00","right");
+}
+function drawClose(X,W,title,val,back,cols){
+  const Y=610, Hh=102; rr(X,Y,W,Hh,14,"#FFFFFF",cols.edge,3);
+  ctx.save(); rr(X+3,Y+3,W-6,Hh-6,11); ctx.clip();
+  const cx=X+W/2, ty=Y+44, th=34, dir=back?-1:1;
+  const xa=cx-dir*val*ZP;                                   // screen x of tape zero
+  const from=back? Math.max(X,xa-2000) : Math.max(X,xa), to=back? Math.min(X+W,xa) : X+W;
+  if(to>from){ ctx.fillStyle=cols.fill; ctx.fillRect(from,ty,to-from,th); ctx.fillStyle=cols.edge; ctx.fillRect(from,ty,to-from,2); ctx.fillRect(from,ty+th-2,to-from,2); }
+  const lo=Math.max(0,Math.floor((val-W/2/ZP)*100)), hi=Math.ceil((val+W/2/ZP)*100);
+  for(let c=lo;c<=hi;c++){ const x=cx+dir*(c/100-val)*ZP; ctx.strokeStyle=cols.ink; ctx.lineWidth=c%10===0?2:1.2; ctx.beginPath(); ctx.moveTo(x,ty+2); ctx.lineTo(x,ty+(c%10===0?17:c%5===0?12:7)); ctx.stroke(); if(c%10===0) txt(fmt(c/100,2),x,ty+30,12.5,cols.ink); }
+  line(xa,ty-6,xa,ty+th+6,"#E0556C",2,[4,3]);
+  ctx.restore();
+  txt(title,X+12,Y+22,12,"#6B5F80","left");
+  ctx.fillStyle="#E0556C"; ctx.beginPath(); ctx.moveTo(cx-7,ty-12); ctx.lineTo(cx+7,ty-12); ctx.lineTo(cx,ty-1); ctx.closePath(); ctx.fill(); line(cx,ty,cx,ty+th,"#E0556C",2);
+  txt("read here",cx,Y+Hh-8,10.5,"#C23B52");
+}
+
+/* ---------- Cosmo, the astronaut guide ---------- */
+function cosmoLine(){
+  if(say) return say;
+  if(playground) return "Playground! Try a heavier object or a lighter roller. Watch the two momentum bars.";
+  if(finished) return "Parts 1 to 3 done! Click Finish for your code, then write Part 4 on your sheet.";
+  if(!ready()) return "Hi, I'm Cosmo! In space, throwing something is how I move. Pick a student, a rolling object and a heavy object.";
+  if(!res1.done){ const n=[weighed.s,weighed.r,weighed.h].filter(Boolean).length; return n<3? "Part 1: weigh all three on the bathroom scale. Record each mass in KILOGRAMS on your sheet." : "Now add the student and the rolling object to get m₁, then check Part 1."; }
+  if(anim.on) return tau<0? "Total standstill... p total is 0." : "RELEASE! The object goes forward. Watch the roller.";
+  if(!thrown) return "Everything is still, so p total = 0. Throw the heavy object and record it in slow-mo!";
+  if(!res2.done) return "Part 2: scrub the video to a frame after the release. Read each distance on its tape and the time on the video clock.";
+  if(!res3.done) return "Part 3: p = mv for each part. Careful with the sign of anything moving BACKWARD.";
+  return "Click Finish for your code.";
+}
+function drawCosmo(lineStr,t){
+  const x=70, y=172+Math.sin((t||0)*2.2)*4, lav="#C9B6FF", lavD="#9C84E6", wh="#FFFFFF", gr="#C6CFDC";
+  ctx.fillStyle="rgba(255,201,168,.75)"; [[-9,58],[9,58]].forEach(([a,b])=>{ ctx.beginPath(); ctx.ellipse(x+a,y+b+Math.sin((t||0)*9+a)*2,5,8,0,0,Math.PI*2); ctx.fill(); });
+  rr(x-28,y-22,56,46,11,lav,lavD,2.5);
+  rr(x-31,y-8,13,26,6,wh,gr,2.5); rr(x+18,y-8,13,26,6,wh,gr,2.5);
+  rr(x-17,y+24,14,18,6,wh,gr,2.5); rr(x+3,y+24,14,18,6,wh,gr,2.5); rr(x-19,y+37,18,9,4,"#8FB8FF","#5F8FE0",2); rr(x+1,y+37,18,9,4,"#8FB8FF","#5F8FE0",2);
+  rr(x-20,y-14,40,44,14,wh,gr,2.5);
+  rr(x-12,y+3,24,13,4,"#EEF5FF","#8FB8FF",2); circ(x-6,y+9.5,2.4,"#E0556C"); circ(x,y+9.5,2.4,"#FFC93C"); circ(x+6,y+9.5,2.4,"#5EC79A");
+  line(x-17,y-58,x-24,y-72,gr,3); circ(x-24,y-73,4,"#E0556C");
+  circ(x,y-38,27,wh,gr,3); ell(x+2,y-37,20,17,DARK); ell(x+2,y-34,15,12.5,SKIN);
+  circ(x-3,y-36,2.6,DARK); circ(x+9,y-36,2.6,DARK); circ(x-2,y-37,0.9,"#fff"); circ(x+10,y-37,0.9,"#fff");
+  ctx.fillStyle="rgba(240,138,180,.5)"; ctx.beginPath(); ctx.arc(x-8,y-30,3.2,0,Math.PI*2); ctx.arc(x+13,y-30,3.2,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle=DARK; ctx.lineWidth=2; ctx.lineCap="round"; ctx.beginPath(); ctx.arc(x+3,y-31,5,0.3,Math.PI-0.3); ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.6)"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(x+2,y-37,15,Math.PI*1.15,Math.PI*1.45); ctx.stroke();
+  rr(x-27,y+62,54,16,8,"#FFF4B8","#F0DC8A",2); txt("COSMO",x,y+74,10,"#6B5F80");
+  // speech bubble anchored to the helmet
+  const bx=122, bw=262, pad=12; ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.textAlign="left";
+  const words=lineStr.split(" "), lines=[]; let cur="";
+  for(const w of words){ const tst=cur?cur+" "+w:w; if(ctx.measureText(tst).width>bw-pad*2){ lines.push(cur); cur=w; } else cur=tst; } if(cur) lines.push(cur);
+  const bh=lines.length*19+pad*2, by=Math.max(62,y-40-bh/2);
+  rr(bx,by,bw,bh,14,"#fff",lav);
+  const ty=Math.min(by+bh-22,Math.max(by+10,y-48));
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+2,ty); ctx.lineTo(x+29,y-40); ctx.lineTo(bx+2,ty+16); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle=lav; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx+1,ty); ctx.lineTo(x+29,y-40); ctx.lineTo(bx+1,ty+16); ctx.stroke();
+  ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.fillStyle="#4A3F5C"; ctx.textAlign="left"; lines.forEach((l,i)=>ctx.fillText(l,bx+pad,by+pad+14+i*19));
+}
+
+/* ---------- frames ---------- */
+function armAt(t){ if(t<-0.36) return 0; if(t<-0.12) return -0.3*(t+0.36)/0.24; if(t<0) return -0.3+1.3*(t+0.12)/0.12; if(t<0.3) return 1; return Math.max(0.55,1-(t-0.3)*1.2); }
+function drawWeigh(now){
+  const xs=640, fl=FLOOR+60;
+  // waiting spots
+  if(sel.r!=null && weighNow!=="s") drawStand(R(),210,fl);
+  if(sel.o!=null && weighNow!=="r") drawRoller(O(),430,fl);
+  if(sel.h!=null && weighNow!=="h") drawHeavy(HV(),510,fl-HV().r-1);
+  // the scale
+  ctx.fillStyle="rgba(74,63,92,.10)"; ctx.beginPath(); ctx.ellipse(xs,fl+14,86,7,0,0,Math.PI*2); ctx.fill();
+  rr(xs-74,fl-2,148,16,7,"#FFFFFF","#C9B6FF",3); rr(xs-62,fl+12,20,5,2,"#C9B6FF"); rr(xs+42,fl+12,20,5,2,"#C9B6FF");
+  let val=0;
+  if(weighNow){ const k=Math.min(1,(now-weighT0)/700), e=1-Math.pow(1-k,3), tv=weighNow==="s"?mS():weighNow==="r"?mR():mH(); val=k>=1?tv:tv*e+(1-e)*Math.sin(k*18)*0.6;
+    if(weighNow==="s") drawStand(R(),xs,fl-2); else if(weighNow==="r") drawRoller(O(),xs+54,fl-2); else drawHeavy(HV(),xs,fl-3-HV().r); }
+  // display
+  const dy=weighNow==="s"? fl-268 : fl-216;
+  line(xs,dy+70,xs,weighNow==="s"? fl-172 : weighNow? fl-120 : fl-6,"#C9B6FF",2,[4,4]);
+  rr(xs-92,dy,184,72,16,"#3D3356","#2E2745",3); rr(xs-82,dy+24,164,40,10,"#D9F5E6");
+  txt("BATHROOM SCALE",xs,dy+17,11,"#C9B6FF"); txt(fmt(Math.max(0,val),1)+" kg",xs,dy+54,28,"#2E5D49");
+  txt(weighNow? (weighNow==="s"?"Student":weighNow==="r"?O().name:HV().name)+" on the scale" : "Nothing on the scale yet",xs,fl+42,13,"#6B5F80");
+}
+function drawCamera(rec){ const x=842, fl=FLOOR;
+  line(x,fl-150,x-22,fl,"#6B5F80",4); line(x,fl-150,x+20,fl,"#6B5F80",4); line(x,fl-150,x-2,fl,"#8A7FA0",4);
+  rr(x-9,fl-164,18,16,4,"#6B5F80"); rr(x-32,fl-214,64,50,9,"#3D3356","#2E2745",3); rr(x-25,fl-207,50,36,5,"#8FB8FF"); circ(x-24,fl-189,2.2,"#2E2745");
+  if(rec){ circ(x+17,fl-199,4,"#E0556C"); } txt("SLOW-MO",x,fl-222,10,"#9A8FB0"); }
+function drawThrow(t){
+  drawCamera(anim.on); drawTapes();
+  const o=O(), xp=X0-x1(t)*PXM, inHand=t<0, arm=armAt(t);
+  const sy=drawRoller(o,xp,FLOOR); drawPointer(xp,FLOOR);
+  drawRider(R(),xp,sy,arm,o.low,inHand?HV():null);
+  if(!inHand){ const bx=X0+x2(t)*PXM, by=FLOOR-y2(t)*PXM, landed=t>=tLand();
+    if(!landed) line(bx,by+HV().r+2,bx,FLOOR+6,"#E0556C",1.6,[3,4]);
+    drawHeavy(HV(),bx,by); drawPointer(bx,FLOOR);
+    if(landed && t<tLand()+0.12){ [[-26,-4,-38,-12],[26,-4,38,-12]].forEach(([a,b,c,d])=>line(bx+a,FLOOR+b,bx+c,FLOOR+d,"#9A8FB0",2.5)); }
+    // velocity arrows
+    if(!landed){ const L=30+v2t()*7; line(bx+HV().r+8,by,bx+HV().r+8+L,by,"#F09A6B",4); ctx.fillStyle="#F09A6B"; ctx.beginPath(); ctx.moveTo(bx+HV().r+8+L+9,by); ctx.lineTo(bx+HV().r+8+L-2,by-7); ctx.lineTo(bx+HV().r+8+L-2,by+7); ctx.closePath(); ctx.fill(); }
+    const ax=xp-124, ay=sy-30, L2=16+v10()*40; line(ax,ay,ax-L2,ay,"#5F8FE0",4); ctx.fillStyle="#5F8FE0"; ctx.beginPath(); ctx.moveTo(ax-L2-9,ay); ctx.lineTo(ax-L2+2,ay-7); ctx.lineTo(ax-L2+2,ay+7); ctx.closePath(); ctx.fill();
+  }
+  // video clock
+  const cxp=668; rr(cxp,56,216,66,14,"#3D3356","#2E2745",3); txt("SLOW-MO VIDEO CLOCK",cxp+108,74,11,"#C9B6FF");
+  txt("t = "+fmt(Math.max(0,t),2)+" s",cxp+108,101,24,"#FFE88A"); txt(t<0?"not released yet":"since the release",cxp+108,116,10.5,"#C9B6FF");
+  drawClose(16,426,"ROLLER CLOSE-UP · distance backward (m)",x1(t),true,{fill:"#BFEFD9",edge:"#5EC79A",ink:"#2E7D55"});
+  drawClose(458,426,"OBJECT CLOSE-UP · distance forward (m)",x2(t),false,{fill:"#FFE88A",edge:"#E8C94A",ink:"#7A5B00"});
+}
+function stageMode(){ if(!ready()) return "empty"; if(playground) return "throw"; return res1.done? "throw" : "weigh"; }
+function draw(){
+  const now=performance.now(); drawRoom();
+  const mode=stageMode();
+  if(mode==="empty"){ const fl=FLOOR+60; if(sel.r!=null) drawStand(R(),300,fl); if(sel.o!=null) drawRoller(O(),520,fl); if(sel.h!=null) drawHeavy(HV(),620,fl-HV().r-1); txt("Pick one of each on the left.",520,FLOOR-150,18,"#C6BBD6"); }
+  else if(mode==="weigh") drawWeigh(now);
+  else drawThrow((playground&&!thrown&&!anim.on)? -T_PRE : tau);
+  drawCosmo(cosmoLine(), now/1000);
+}
+
+/* ---------- momentum bars ---------- */
+const gv=$("gv"), gx=gv.getContext("2d");
+function drawGraph(){
+  const W=440,Hh=216, cx=W/2; gx.clearRect(0,0,W,Hh);
+  let p2=0,p1=0,show=false,nums=false;
+  if(ready() && (thrown||anim.on) && tau>=0){ show=true; if(res3.done&&!playground){ p2=res3.p2; p1=res3.p1; nums=true; } else { p2=mH()*v2t(); p1=-m1()*v10(); nums=playground; } }
+  const pt=p1+p2, mx=Math.max(8,Math.abs(p2),Math.abs(p1))*1.12, S=(cx-96)/mx;
+  const rows=[["p₂ · heavy object",p2,"#F09A6B","rgba(255,201,168,.8)"],["p₁ · student & roller",p1,"#5F8FE0","rgba(143,184,255,.7)"],["p total = p₁ + p₂",pt,"#9C84E6","rgba(201,182,255,.8)"]];
+  gx.font="700 16px Fredoka, Nunito, sans-serif";
+  rows.forEach((r,i)=>{ const y=20+i*62; gx.fillStyle="#6B5F80"; gx.textAlign="left"; gx.fillText(r[0],14,y);
+    const w=r[1]*S, bx=w>=0?cx:cx+w; gx.fillStyle=r[3]; gx.fillRect(bx,y+8,Math.abs(w),26); gx.strokeStyle=r[2]; gx.lineWidth=2.5; if(Math.abs(w)>1.5) gx.strokeRect(bx,y+8,Math.abs(w),26); else { gx.beginPath(); gx.moveTo(cx,y+6); gx.lineTo(cx,y+36); gx.stroke(); }
+    gx.fillStyle=nums?"#4A3F5C":"#C6CFDC"; gx.textAlign=w>=0?"left":"right"; const lab=!show? "0" : nums? sgn(r[1],2)+" kg·m/s" : "· · ·"; gx.font="700 14px Fredoka, Nunito, sans-serif"; gx.fillText(lab, w>=0? cx+Math.abs(w)+7 : cx-Math.abs(w)-7, y+26); gx.font="700 16px Fredoka, Nunito, sans-serif"; });
+  gx.strokeStyle="#6B5F80"; gx.lineWidth=2; gx.setLineDash([5,5]); gx.beginPath(); gx.moveTo(cx,4); gx.lineTo(cx,Hh-20); gx.stroke(); gx.setLineDash([]);
+  gx.fillStyle="#9A8FB0"; gx.font="700 13px Fredoka, Nunito, sans-serif"; gx.textAlign="center"; gx.fillText("◀ backward (−)        0        forward (+) ▶",cx,Hh-5);
+}
+function redraw(){ draw(); drawGraph(); }
+
+/* ---------- weigh + throw ---------- */
+function weigh(k){ if(!ready()||res1.done||playground) return; weighNow=k; weighT0=performance.now(); weighed[k]=true; say=null; syncUI(); save(); kick(); }
+$("btnW1").onclick=()=>weigh("s"); $("btnW2").onclick=()=>weigh("r"); $("btnW3").onclick=()=>weigh("h");
+function startThrow(){ if(!ready()||anim.on) return; say=null; anim={on:true,t0:performance.now()}; tau=-T_PRE; $("tagRec").classList.remove("hide"); $("scrubBox").classList.add("hide"); ["btnThrow","btnPgThrow"].forEach(i=>$(i).disabled=true); refreshShelves(); requestAnimationFrame(tick); }
+function tick(){ if(!anim.on) return; tau=-T_PRE+(performance.now()-anim.t0)/1000*RATE; $("tagP").classList.toggle("hide",tau>=0); if(tau>=T_END){ tau=T_END; anim.on=false; thrown=true; $("tagRec").classList.add("hide"); syncUI(); redraw(); save(); return; } redraw(); requestAnimationFrame(tick); }
+$("btnThrow").onclick=startThrow; $("btnPgThrow").onclick=startThrow;
+function setScrub(v){ tau=v/100-T_PRE; $("tagP").classList.toggle("hide",tau>=0); $("scrubT").textContent= tau<0? "before release" : "t = "+fmt(tau,2)+" s"; redraw(); }
+$("scrub").oninput=e=>setScrub(+e.target.value);
+$("fPrev").onclick=()=>{ const s=$("scrub"); s.value=Math.max(0,+s.value-1); setScrub(+s.value); };
+$("fNext").onclick=()=>{ const s=$("scrub"); s.value=Math.min(260,+s.value+1); setScrub(+s.value); };
+let kicking=false; function kick(){ if(kicking) return; kicking=true; const f=()=>{ redraw(); if(weighNow && performance.now()-weighT0<800) requestAnimationFrame(f); else kicking=false; }; requestAnimationFrame(f); }
+
+/* ---------- checks ---------- */
+const num = id => parseFloat($(id).value);
+const box = (id,cls,html) => { $(id).innerHTML='<div class="'+cls+'">'+html+'</div>'; };
+$("btnC1").onclick=()=>{
+  const a=num("inMs"), b=num("inMr"), c=num("inM1"), d=num("inM2");
+  if([a,b,c,d].some(isNaN)){ box("msg1","warn","Fill in all four. Weigh each thing on the scale first."); return; }
+  const e=[]; const near=(x,t)=>Math.abs(x-t)<=0.151;
+  if(!near(a,mS())) e.push(Math.abs(a/2.2046-mS())<0.4? "Student: that looks like POUNDS. The scale reads kilograms." : "Student: put the student back on the scale and read it again.");
+  if(!near(b,mR())) e.push("Rolling object: weigh it again and read the display.");
+  if(!near(c,mS()+mR())) e.push(near(c,mS()+mR()+mH())? "m₁ is ONLY the student plus the rolling object. The heavy object is m₂." : "m₁ = m student + m roller. Add those two.");
+  if(!near(d,mH())) e.push("Heavy object (m₂): weigh it again.");
+  if(e.length){ say="Not yet. Check the notes on the right and try again."; box("msg1","bad",e.join("<br>")); redraw(); return; }
+  res1={done:true,ms:a,mr:b,m1:c,m2:d}; weighNow=null; say=null; tau=-T_PRE;
+  box("msg1","ok","Part 1 checks out! m₁ = "+fmt(c,1)+" kg and m₂ = "+fmt(d,1)+" kg. Set up for the throw."); syncUI(); redraw(); save();
+};
+$("btnH2").onclick=()=>box("msg2","warn","Use the ◀ frame and frame ▶ buttons. For the heavy object, stop on a frame while it is still in the AIR. For the student and roller, any frame after 0.50 s works (later is easier to read). Then v = d ÷ t.");
+$("btnC2").onclick=()=>{
+  const d2=num("inD2"), t2=num("inT2"), w2=num("inV2"), d1=num("inD1"), t1=num("inT1"), w1=num("inV1");
+  if([d2,t2,w2,d1,t1,w1].some(isNaN)){ box("msg2","warn","Fill in all six boxes: d, t and v for the heavy object AND for the student and roller."); return; }
+  const e=[], tl=tLand();
+  if(t2<=0||t1<=0) e.push("Times must be after the release: the video clock has to read more than 0.");
+  else {
+    if(t2>tl+0.006) e.push("Heavy object: it has already LANDED at t = "+fmt(t2,2)+" s. Pick a frame while it is still in the air.");
+    else if(t2<0.15) e.push("Heavy object: pick a later frame so the distance is big enough to read well.");
+    else if(Math.abs(d2-v2t()*t2)>0.025+0.01*d2) e.push(Math.abs(d2/100-v2t()*t2)<0.03? "Heavy object: distance goes in METERS (for example 152 cm = 1.52 m)." : "Heavy object: go to the frame at t = "+fmt(t2,2)+" s and read the OBJECT close-up again.");
+    else if(Math.abs(w2-d2/t2)>0.025*d2/t2+0.006) e.push("Heavy object: v = d ÷ t. Divide your distance by your time.");
+    if(t1<0.5) e.push("Student and roller: pick a frame at 0.50 s or later so the distance is big enough to read.");
+    else if(t1>T_END+0.001) e.push("Student and roller: the video ends at 2.00 s.");
+    else if(Math.abs(d1-x1(t1))>0.016) e.push(Math.abs(d1/100-x1(t1))<0.02? "Student and roller: distance goes in METERS (for example 48 cm = 0.48 m)." : "Student and roller: go to the frame at t = "+fmt(t1,2)+" s and read the ROLLER close-up again.");
+    else if(Math.abs(Math.abs(w1)-d1/t1)>0.03*d1/t1+0.004) e.push("Student and roller: v = d ÷ t. Divide your distance by your time.");
+  }
+  if(e.length){ say="Close! Fix what I flagged on the right."; box("msg2","bad",e.join("<br>")); redraw(); return; }
+  res2={done:true,d2,t2,v2:w2,d1,t1,v1:Math.abs(w1)}; say=null;
+  box("msg2","ok","Part 2 checks out! The object moved forward at "+fmt(w2,2)+" m/s and the student and roller moved BACKWARD at "+fmt(Math.abs(w1),2)+" m/s."); syncUI(); redraw(); save();
+};
+$("btnH3").onclick=()=>box("msg3","warn","p₂ = m₂ × v object. p₁ = m₁ × v student, and the student moved BACKWARD, so that velocity is negative. p total = p₁ + p₂ (add them with their signs).");
+$("btnC3").onclick=()=>{
+  const p2=num("inP2"), p1=num("inP1"), pt=num("inPT");
+  if([p2,p1,pt].some(isNaN)){ box("msg3","warn","Fill in all three. Work them on your sheet first."); return; }
+  const e=[], e2=res1.m2*res2.v2, e1=res1.m1*res2.v1, ok=(x,t)=>Math.abs(x-t)<=0.02*Math.abs(t)+0.03;
+  if(!ok(Math.abs(p2),e2)) e.push(ok(Math.abs(p2),res1.m1*res2.v2)? "1 · The heavy object uses m₂, not m₁." : "1 · p₂ = m₂ × v object = "+fmt(res1.m2,1)+" kg × "+fmt(res2.v2,2)+" m/s."); else if(p2<0) e.push("1 · Right size, but the object went FORWARD, so p₂ is positive.");
+  if(!ok(Math.abs(p1),e1)) e.push(ok(Math.abs(p1),res1.m2*res2.v1)? "2 · The student and roller use m₁, not m₂." : "2 · p₁ = m₁ × v student = "+fmt(res1.m1,1)+" kg × "+fmt(res2.v1,2)+" m/s."); else if(p1>0) e.push("2 · Right size! But the student and roller moved BACKWARD, so the velocity and p₁ are NEGATIVE.");
+  if(!e.length && Math.abs(pt-(p1+p2))>0.05+0.005*Math.abs(p2)) e.push(Math.abs(pt-(Math.abs(p1)+Math.abs(p2)))<0.1? "3 · Add them WITH their signs: a positive plus a negative." : "3 · p total = p₁ + p₂. Add your two answers with their signs.");
+  if(e.length){ say="Almost. Check the notes on the right."; box("msg3","bad",e.join("<br>")); redraw(); return; }
+  res3={done:true,p2,p1,pt}; finished=true; say=null;
+  box("msg3","ok","Part 3 checks out! Before the throw, p total was 0. On your sheet, say how close your p total after the throw is to zero and what could explain any difference. Then click Finish for your code."); syncUI(); redraw(); save();
+};
+
+/* ---------- UI ---------- */
+function iconR(r){ return '<svg viewBox="0 0 46 46"><circle cx="21" cy="19" r="14" fill="'+r.hair+'"/><circle cx="24" cy="22" r="12" fill="'+SKIN+'" stroke="'+SKIND+'" stroke-width="1.5"/><circle cx="29" cy="21" r="2" fill="'+DARK+'"/><path d="M25 27q3 3 6 0" stroke="'+DARK+'" stroke-width="1.6" fill="none" stroke-linecap="round"/><rect x="12" y="35" width="24" height="10" rx="5" fill="'+r.shirt+'" stroke="'+r.shirtD+'" stroke-width="2"/></svg>'; }
+function iconO(o){ const m={skate:'<rect x="4" y="22" width="38" height="5" rx="2.5" fill="#F09A6B" stroke="#D97B4A" stroke-width="2"/><circle cx="12" cy="32" r="4" fill="#4A3F5C"/><circle cx="34" cy="32" r="4" fill="#4A3F5C"/>',
+  chair:'<rect x="9" y="6" width="6" height="20" rx="3" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2"/><rect x="10" y="22" width="24" height="6" rx="3" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2"/><path d="M22 28v9M8 38h28" stroke="#6B5F80" stroke-width="3" stroke-linecap="round"/><circle cx="9" cy="41" r="3" fill="#4A3F5C"/><circle cx="22" cy="41" r="3" fill="#4A3F5C"/><circle cx="35" cy="41" r="3" fill="#4A3F5C"/>',
+  dolly:'<rect x="4" y="20" width="38" height="7" rx="2" fill="#E3C58F" stroke="#C39A52" stroke-width="2"/><circle cx="11" cy="33" r="5" fill="#4A3F5C"/><circle cx="35" cy="33" r="5" fill="#4A3F5C"/>'}; return '<svg viewBox="0 0 46 46">'+m[o.id]+'</svg>'; }
+function iconH(h){ return '<svg viewBox="0 0 46 46">'+(h.id==="ball"? '<circle cx="23" cy="24" r="15" fill="#F26D7D" stroke="#C23B52" stroke-width="2.5"/><path d="M13 13q8 11 0 22M33 13q-8 11 0 22" stroke="#C23B52" stroke-width="2" fill="none"/>' : '<rect x="9" y="10" width="28" height="30" rx="8" fill="#9FE6C4" stroke="#5EC79A" stroke-width="2.5"/><rect x="14" y="24" width="18" height="11" rx="4" fill="#C9F2DE" stroke="#5EC79A" stroke-width="2"/><path d="M18 10v-5h10v5" stroke="#5EC79A" stroke-width="2.5" fill="none"/>')+'</svg>'; }
+function refreshShelves(){
+  const lock = anim.on || (!playground && res1.done);
+  const mk=(el,arr,key,icon)=>{ $(el).innerHTML=arr.map((o,i)=>'<div class="obj'+(sel[key]===i?' active':'')+(lock?' lockedo':'')+'" data-i="'+i+'">'+icon(o)+'<div class="nm">'+o.name+'</div></div>').join("");
+    [...$(el).children].forEach(c=>c.onclick=()=>{ sel[key]=+c.dataset.i; say=null; if(!playground){ weighed={s:false,r:false,h:false}; weighNow=null; } else { thrown=false; tau=-T_PRE; } syncUI(); redraw(); save(); }); };
+  mk("shelfR",RIDERS,"r",iconR); mk("shelfO",ROLLERS,"o",iconO); mk("shelfH",HEAVY,"h",iconH);
+}
+function renderSteps(){
+  const items=[
+    ["Pick your materials","A student, a rolling object and a heavy object.", ready()],
+    ["Part 1: system mass data","Weigh all three in kg. Find m₁ and m₂.", res1.done],
+    ["Set up and throw","Total standstill, then throw. Recorded in slow-mo.", thrown&&res1.done],
+    ["Part 2: experimental data","Distance and time for each, then v = d/t.", res2.done],
+    ["Part 3: momentum","p₂, p₁ and p total, with signs.", res3.done],
+  ];
+  const nowIdx=items.findIndex(i=>!i[2]);
+  $("steps").innerHTML=items.map((it,i)=>'<div class="step'+(it[2]?' done':(i===nowIdx?' now':''))+'"><div class="n">'+(it[2]?'✓':i+1)+'</div><div class="t"><b>'+it[0]+'</b>'+it[1]+'</div></div>').join("");
+  const n=items.filter(i=>i[2]).length; $("progTxt").textContent=n+" / 5 steps"; $("dots").innerHTML=items.map(i=>'<span class="dot'+(i[2]?' on':'')+'"></span>').join("");
+}
+function renderLedger(){
+  const hid='<span class="hid">···</span>', a=res1.done, b=res2.done, c=res3.done;
+  const rows=[["Student, rolling object", a? fmt(res1.ms,1)+" kg, "+fmt(res1.mr,1)+" kg" : hid],["m₁ (student + roller)", a? fmt(res1.m1,1)+" kg" : hid],["m₂ (heavy object)", a? fmt(res1.m2,1)+" kg" : hid],
+    ["Heavy object d, t", b? fmt(res2.d2,2)+" m, "+fmt(res2.t2,2)+" s" : hid],["Heavy object v", b? "+"+fmt(res2.v2,2)+" m/s" : hid],
+    ["Student & roller d, t", b? fmt(res2.d1,2)+" m, "+fmt(res2.t1,2)+" s" : hid],["Student & roller v", b? "−"+fmt(res2.v1,2)+" m/s" : hid],
+    ["p₂", c? sgn(res3.p2)+" kg·m/s" : hid],["p₁", c? sgn(res3.p1)+" kg·m/s" : hid],["p total", c? sgn(res3.pt)+" kg·m/s" : hid]];
+  $("ledger").innerHTML=rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join("");
+}
+function syncUI(){
+  const rdy=ready(), mode=stageMode();
+  $("tagG").textContent= rdy? R().name+" · "+O().name+" · "+HV().name : "Pick your materials";
+  $("tagP").classList.toggle("hide", !(mode==="throw" && !anim.on && (!thrown || tau<0)));
+  const wm = mode==="weigh";
+  [["btnW1","s","student"],["btnW2","r","rolling object"],["btnW3","h","heavy object"]].forEach(([id,k,n])=>{ $(id).classList.toggle("hide",!(!playground&&!res1.done)); $(id).disabled=!wm; $(id).textContent=(weighed[k]?"✓ ":"⚖ ")+"Weigh "+n; });
+  $("btnThrow").classList.toggle("hide", playground||!res1.done); $("btnThrow").disabled=anim.on; $("btnThrow").textContent= thrown? "↻ Replay the throw" : "▶ Throw (record in slow-mo)";
+  $("btnPgThrow").disabled=!rdy||anim.on;
+  $("stageHint").textContent= !rdy? "Pick a student, a rolling object and a heavy object." : !res1.done? "Weigh all three, then fill in Part 1." : !thrown? "Sitting at a total standstill. Throw when you are ready." : !res2.done? "Scrub the video and take your Part 2 readings." : "Video saved. Keep scrubbing any time.";
+  $("scrubBox").classList.toggle("hide", !(thrown && !anim.on && mode==="throw"));
+  if(thrown&&!anim.on){ $("scrub").value=Math.round((tau+T_PRE)*100); $("scrubT").textContent= tau<0? "before release" : "t = "+fmt(tau,2)+" s"; }
+  $("c1").classList.toggle("locked", playground || !rdy);
+  $("c2").classList.toggle("locked", playground || !(res1.done&&thrown));
+  $("c3").classList.toggle("locked", playground || !res2.done);
+  ["inMs","inMr","inM1","inM2"].forEach(i=>$(i).disabled=res1.done); $("btnC1").disabled=res1.done;
+  ["inD2","inT2","inV2","inD1","inT1","inV1"].forEach(i=>$(i).disabled=res2.done); $("btnC2").disabled=res2.done;
+  ["inP2","inP1","inPT"].forEach(i=>$(i).disabled=res3.done); $("btnC3").disabled=res3.done;
+  $("finishBtn").disabled=!finished;
+  if(playground && rdy){ const sh=thrown||anim.on; $("pgHint").textContent= sh? "Object: v = +"+fmt(v2t(),2)+" m/s ("+fmt(mH(),1)+" kg).  Student + roller: v = −"+fmt(v10(),2)+" m/s ("+fmt(m1(),1)+" kg)." : "Playground: any materials, any throw strength."; }
+  refreshShelves(); renderSteps(); renderLedger();
+}
+
+/* ---------- code + report ---------- */
+function makeCode(){
+  const keep=playground; playground=false; const p=Math.round(mH()*v2t()*10); playground=keep;
+  const k=String.fromCharCode(65+((sel.r*3+sel.o*5+sel.h*7+p*7+HH())%26));
+  return "RECOIL-"+(sel.r+1)+(sel.o+1)+(sel.h+1)+"-"+String(p).padStart(3,"0")+"-"+k;
+}
+$("finishBtn").onclick=()=>{
+  if(!finished) return;
+  $("repWho").innerHTML="<b>"+studentName+"</b> · "+R().name+" on the "+O().name.toLowerCase()+" · "+HV().name.toLowerCase()+" · "+new Date().toLocaleDateString();
+  const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>';
+  $("repBody").innerHTML='<table><tr><th>Part 1 · System mass data</th><th></th></tr>'+row("Student (m student)",fmt(res1.ms,1)+" kg")+row("Rolling object (m roller)",fmt(res1.mr,1)+" kg")+row("Total system mass 1 (m₁)",fmt(res1.m1,1)+" kg")+row("Heavy object mass (m₂)",fmt(res1.m2,1)+" kg")+
+    '<tr><th>Part 2 · Experimental data</th><th></th></tr>'+row("Heavy object: d, t, v",fmt(res2.d2,2)+" m · "+fmt(res2.t2,2)+" s · +"+fmt(res2.v2,2)+" m/s")+row("Student & roller: d, t, v",fmt(res2.d1,2)+" m · "+fmt(res2.t1,2)+" s · −"+fmt(res2.v1,2)+" m/s")+
+    '<tr><th>Part 3 · Momentum calculations</th><th></th></tr>'+row("p₂ (heavy object)",sgn(res3.p2)+" kg·m/s")+row("p₁ (student/roller)",sgn(res3.p1)+" kg·m/s")+row("p total = p₁ + p₂",sgn(res3.pt)+" kg·m/s")+'</table>'+
+    '<p>Copy these onto your lab sheet. Part 4 (the three analysis questions) is YOURS to write.</p>';
+  $("repCode").textContent=makeCode(); $("ovReport").classList.add("on"); save();
+};
+$("copyCode").onclick=()=>{ const c=$("repCode").textContent; (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{$("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500);}).catch(()=>{ const r=document.createRange(); r.selectNodeContents($("repCode")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); };
+$("printRep").onclick=()=>window.print();
+$("closeRep").onclick=()=>$("ovReport").classList.remove("on");
+
+/* ---------- playground ---------- */
+function openPlayground(){ playground=true; thrown=false; tau=-T_PRE; say=null; $("ovReport").classList.remove("on"); $("lvlPill").textContent="Playground"; $("playCard").classList.remove("hide"); $("labControls").classList.add("hide"); $("pgControls").classList.remove("hide"); syncUI(); redraw(); save(); }
+$("pgS").oninput=e=>{ if(anim.on){ e.target.value=Math.round(pgS*100); return; } pgS=(+e.target.value)/100; $("pgSv").textContent=e.target.value+"%"; thrown=false; tau=-T_PRE; syncUI(); redraw(); };
+$("playBtn").onclick=openPlayground;
+
+/* ---------- start ---------- */
+function begin(resume){
+  if(!resume){ sel={r:null,o:null,h:null}; weighed={s:false,r:false,h:false}; res1={done:false}; res2={done:false}; res3={done:false}; thrown=false; finished=false; playground=false; }
+  $("ovStart").classList.remove("on"); weighNow=null; tau= thrown? T_END : -T_PRE;
+  if(resume){ const set=(o,m)=>Object.entries(m).forEach(([id,[k,d]])=>{ if(o.done) $(id).value=fmt(o[k],d); });
+    set(res1,{inMs:["ms",1],inMr:["mr",1],inM1:["m1",1],inM2:["m2",1]}); set(res2,{inD2:["d2",2],inT2:["t2",2],inV2:["v2",2],inD1:["d1",2],inT1:["t1",2],inV1:["v1",2]}); set(res3,{inP2:["p2",2],inP1:["p1",2],inPT:["pt",2]}); }
+  if(resume && playground){ openPlayground(); return; }
+  syncUI(); redraw(); save();
+}
+$("btnStart").onclick=()=>{ const n=$("inName").value.trim(); if(n.split(/\s+/).length<2){ $("startErr").textContent="Please type your first AND last name."; $("startErr").style.color="#C23B52"; return; } studentName=n; begin(false); };
+$("btnResume").onclick=()=>{ const d=load(); if(!d) return; ({studentName,sel,weighed,res1,res2,res3,thrown,finished,playground}=d); begin(true); };
+$("btnWipe").onclick=()=>{ localStorage.removeItem("recoilLab"); $("btnResume").classList.add("hide"); $("btnWipe").classList.add("hide"); $("inName").value=""; };
+(function init(){ const d=load(); if(d&&d.studentName){ $("btnResume").classList.remove("hide"); $("btnWipe").classList.remove("hide"); $("inName").value=d.studentName; $("btnResume").textContent="Continue as "+d.studentName; } syncUI(); redraw(); })();
+setInterval(()=>{ if(!anim.on && !kicking && !document.hidden) draw(); }, 120);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(redraw);
+</script>
+</body></html>

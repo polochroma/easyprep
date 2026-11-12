@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collision Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+  --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+  --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+  --pass:#6FD3A0; --fail:#FF8A9B;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+button{font-family:inherit;color:var(--text)}
+input,select{font-family:inherit;color:var(--text)}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:640px){header h1{font-size:18px}}
+header h1 span{color:var(--skyD)}
+.logo{width:30px;height:30px;border-radius:50%;background:var(--peachD);box-shadow:inset -6px -6px 0 rgba(0,0,0,.08);position:relative}
+.logo:after{content:"";position:absolute;left:7px;top:8px;width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--lemon);color:#6B5F80}
+.spacer{flex:1}
+.prog{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;background:#EADFCE;border:2px solid #fff;box-shadow:0 0 0 2px #EADFCE}
+.dot.on{background:var(--pass);box-shadow:0 0 0 2px var(--pass)}
+.dot.half{background:var(--lemonD);box-shadow:0 0 0 2px var(--lemonD)}
+.btn{border:0;border-radius:14px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.10);transition:transform .08s,box-shadow .08s;background:var(--sky);color:#2E2745}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.10)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.mint{background:var(--mint)} .btn.lav{background:var(--lav)} .btn.peach{background:var(--peach)} .btn.lemon{background:var(--lemon)} .btn.pink{background:var(--pink)}
+.btn.ghost{background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:12px}
+.btn.big{font-size:16px;padding:12px 22px}
+main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:16px;padding:16px 18px 28px;max-width:1380px;width:100%;margin:0 auto}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}.col-mid{grid-column:1/-1;order:-1}}
+@media(max-width:640px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+.card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+.card + .card{margin-top:14px}
+.card.locked{opacity:.55;pointer-events:none}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.jump{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.jump:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.jump.active{border-color:var(--sky);background:#EEF5FF}
+.jump svg{width:44px;height:56px;display:block;margin:0 auto}
+.jump .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.jump .fm{font-size:10px;color:var(--muted);font-weight:600}
+.jump.lockedj{pointer-events:none;opacity:.55}
+.bandrow{display:flex;align-items:center;gap:8px;margin:8px 0;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:16px;padding:8px 10px}
+.bandrow .sw{width:34px;height:22px;border-radius:11px;border:3px solid;flex:0 0 auto}
+.bandrow .nm{flex:1;font-size:13px;font-weight:700;line-height:1.15}
+.bandrow .nm small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+.bandrow .ct{display:flex;align-items:center;gap:6px}
+.bandrow .ct button{width:30px;height:30px;border-radius:50%;border:0;background:var(--lav);font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.10);line-height:1}
+.bandrow .ct button:disabled{opacity:.35;cursor:not-allowed}
+.bandrow .ct b{min-width:26px;text-align:center;font-size:17px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:14px;background:#FAF7F2;border:2px solid transparent}
+.step.now{background:#FFF4B8;border-color:#F0DC8A}
+.step.done{background:#E6F8EF}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--lav);color:#3D3356;font-weight:700;display:grid;place-items:center;font-size:13px}
+.step.done .n{background:var(--pass);color:#fff}
+.step .t{font-size:13px;line-height:1.25}
+.step .t b{display:block;font-size:13.5px}
+.stage{position:relative;background:#F3EEF9;border:3px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+canvas{display:block;width:100%;height:auto}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#6B5F80}
+.tag.rec{background:#FFECEF;border-color:#FFB7D5;color:#E0556C}
+.tag.rec:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#E0556C;margin-right:6px;animation:blink 1s infinite}
+.tag.go{background:#E6F8EF;border-color:#9FE6C4;color:#2E7D55}
+@keyframes blink{50%{opacity:.2}}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:10px;background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 12px}
+.scrub input[type=range]{flex:1;accent-color:var(--skyD)}
+.scrub .tm{font-weight:700;font-size:13px;color:var(--muted);min-width:70px;text-align:right}
+.scrub .lab{font-size:12px;font-weight:700;color:var(--muted)}
+.field{display:flex;align-items:center;gap:8px;margin:8px 0}
+.field label{font-size:13px;font-weight:700;flex:1;line-height:1.2}
+.field input{width:104px;border:3px solid var(--line);border-radius:12px;padding:7px 10px;font-size:15px;font-weight:700;text-align:right;background:#FFFBF5}
+.field input:focus{outline:none;border-color:var(--sky)}
+.field input:disabled{background:#F6F1EA;color:#9A8FB0}
+.field .u{font-size:13px;color:var(--muted);font-weight:700;min-width:28px}
+.note{font-size:12.5px;line-height:1.35;color:#6B5F80;background:#FAF7F2;border-radius:12px;padding:8px 10px;margin:6px 0}
+.ok{background:#E6F8EF;color:#2E7D55;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bad{background:#FFECEF;color:#C23B52;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.warn{background:#FFF4B8;color:#7A5B00;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:6px;line-height:1.35}
+.bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:10px 8px 0;background:#FFFBF5;border:3px solid var(--line);border-radius:16px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bar .fill{width:70%;border-radius:10px 10px 4px 4px;transition:height .06s linear;min-height:3px}
+.bar .lb{font-size:11px;font-weight:700;color:#6B5F80;margin:6px 0 4px;text-align:center;line-height:1.1}
+.bar .val{font-size:11px;font-weight:700;color:var(--muted);height:14px}
+.ledger{width:100%;border-collapse:collapse;font-size:12.5px}
+.ledger td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700}
+.ledger td:last-child{text-align:right;font-family:Nunito,monospace;font-variant-numeric:tabular-nums}
+.ledger .hid{color:#C6CFDC;letter-spacing:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.3}
+.hide{display:none!important}
+.ov{position:fixed;inset:0;background:rgba(74,63,92,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.ov.on{display:flex}
+.modal{background:#fff;border:3px solid var(--line);border-radius:24px;padding:22px;max-width:640px;width:100%;box-shadow:0 10px 0 var(--line);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 6px;font-size:24px}
+.modal h2 span{color:var(--skyD)}
+.modal p{font-size:14px;line-height:1.4;margin:6px 0 12px}
+.modal input.name{width:100%;border:3px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;font-weight:700;background:#FFFBF5}
+.modal input.name:focus{outline:none;border-color:var(--sky)}
+.code{font-family:Nunito,monospace;font-weight:800;font-size:22px;letter-spacing:1px;background:#FFF4B8;border:3px dashed #F0DC8A;border-radius:14px;padding:10px 14px;display:inline-block;margin:6px 0}
+.rep table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.rep th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.rep td{padding:5px 6px;border-bottom:1px dashed var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.rep td:last-child{text-align:right}
+.verdict{font-size:20px;font-weight:800;border-radius:16px;padding:12px 14px;margin:8px 0}
+.verdict.good{background:#E6F8EF;color:#2E7D55}
+.verdict.meh{background:#FFF4B8;color:#7A5B00}
+.verdict.crash{background:#FFECEF;color:#C23B52}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;padding:0 18px 18px;line-height:1.4}
+@media print{header,.col-left,.col-right,.controls,.scrub,.foot{display:none!important}main{display:block}.ov{position:static;background:none}.modal{box-shadow:none;max-width:none}}
+</style>
+<style>
+.obj{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:8px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+.obj:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.obj.active{border-color:var(--sky);background:#EEF5FF}
+.obj svg{width:46px;height:46px;display:block;margin:0 auto}
+.obj .nm{font-size:12px;font-weight:700;margin-top:3px;line-height:1.1}
+.obj.lockedo{pointer-events:none;opacity:.55}
+.shelfLab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px}
+.shelfLab:first-of-type{margin-top:0}
+.hrow{display:flex;align-items:center;gap:10px;margin-top:4px;font-weight:700;font-size:13px}
+.hrow input{flex:1;accent-color:var(--skyD)}
+.gwrap{background:#FFFBF5;border:3px solid var(--line);border-radius:16px;padding:6px}
+.gwrap canvas{width:100%;display:block}
+.dt{display:grid;grid-template-columns:1fr 92px 92px;gap:6px;align-items:center}
+.dt .hd{font-size:10.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.15;text-transform:uppercase}
+.dt .rw{font-size:12.5px;font-weight:700;line-height:1.15}
+.dt input{width:100%;border:3px solid var(--line);border-radius:12px;padding:7px 8px;font-size:14px;font-weight:700;text-align:right;background:#FFFBF5}
+.dt input:focus{outline:none;border-color:var(--sky)}
+.dt input:disabled{background:#F6F1EA;color:#9A8FB0}
+.fbtn{border:2px solid var(--line);border-radius:10px;background:#fff;font-weight:700;font-size:12px;padding:6px 9px;cursor:pointer;white-space:nowrap}
+.fbtn:hover{background:#FFF4B8}
+.stage canvas{width:100%;display:block}
+.tabs{display:flex;gap:6px;margin-left:10px}
+.tabs button{border:3px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-weight:700;font-size:12.5px;cursor:pointer;color:#6B5F80}
+.tabs button.on{background:var(--sky);border-color:var(--skyD);color:#2E2745}
+.tabs button:disabled{opacity:.45;cursor:default}
+.tt{display:flex;gap:6px;margin-bottom:8px}
+.tt button{flex:1;border:2px solid var(--line);border-radius:10px;background:#FFFBF5;font-weight:700;font-size:12.5px;padding:6px 2px;cursor:pointer}
+.tt button.on{background:var(--lemon);border-color:var(--lemonD)}
+.tt button.dn{background:#E6F8EF;border-color:#9FE6C4}
+.tt button.on.dn{background:var(--lemon);border-color:var(--lemonD)}
+.marks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.marks button{border:3px solid #F3E6D4;background:#FFF9F1;border-radius:14px;padding:8px 4px;font-weight:700;font-size:12.5px;cursor:pointer}
+.marks button.active{border-color:var(--sky);background:#EEF5FF}
+.marks button:disabled{opacity:.55;cursor:default}
+.pen{display:flex;align-items:center;gap:6px;margin-top:10px}
+.pen .n{flex:1;text-align:center;font-weight:700;font-size:15px}
+.ledger td.h{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding-top:9px}
+
+.skip{margin-top:10px;border:2px dashed var(--line);border-radius:14px;padding:8px 12px;background:#FFFBF5}
+.skip summary{cursor:pointer;font-weight:700;font-size:13.5px;color:#6B5B95}
+.skip[open] summary{margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1><i class="logo"></i>COLLISION <span>LAB</span> <span class="pill" id="lvlPill">Virtual Lab</span></h1>
+  <div class="tabs"><button id="tab1" class="on">Part 1 · Initial Collision</button><button id="tab2" disabled>Part 2 · Perfect Stop</button></div>
+  <div class="spacer"></div>
+  <div class="prog"><span id="progTxt">0 / 7 steps</span><div class="dots" id="dots"></div></div>
+  <button class="btn lemon sm" id="codesBtn" disabled>My codes</button>
+</header>
+
+<main>
+<section class="col-left">
+  <div class="card" id="gearCard">
+    <h2>Your two objects</h2>
+    <div class="shelf" id="shelf"></div>
+    <div class="note" id="gearNote">Pick a pair. Object A (blue) gets launched. Object B (orange) is the target. Their masses are NOT printed: put each one on the scale.</div>
+  </div>
+  <div class="card hide" id="setupCard">
+    <h2>Part 2 · Build Object B</h2>
+    <div class="shelfLab">B's ramp mark (launch speed)</div>
+    <div class="marks" id="marks"></div>
+    <div class="shelfLab">Pennies taped to B (2.5 g each)</div>
+    <div class="pen"><button class="fbtn" id="pm5">−5</button><button class="fbtn" id="pm1">−1</button><span class="n" id="penN">0</span><button class="fbtn" id="pp1">+1</button><button class="fbtn" id="pp5">+5</button></div>
+    <div class="note" id="scaleNote">B on the scale: — g</div>
+  </div>
+  <div class="card">
+    <h2>Procedure</h2>
+    <div class="steps" id="steps"></div>
+  </div>
+</section>
+
+<section class="col-mid">
+  <div class="stage">
+    <canvas id="cv" width="900" height="620"></canvas>
+    <div class="hud"><span class="tag" id="tagG">Pick your objects</span><span class="tag rec hide" id="tagRec">SLOW-MO REC</span></div>
+  </div>
+  <div class="controls" id="p1Controls">
+    <button class="btn" id="btnWA" disabled>⚖ Mass Object A</button>
+    <button class="btn" id="btnWB" disabled>⚖ Mass Object B</button>
+    <button class="btn peach big" id="btnRun" disabled>▶ Run trial 1</button>
+    <span class="hint" id="hint1">Pick a pair of objects to start.</span>
+  </div>
+  <div class="controls hide" id="p2Controls">
+    <button class="btn" id="btnChk">▶ Speed check</button>
+    <button class="btn peach big" id="btnLaunch" disabled>▶ Launch both</button>
+    <span class="hint" id="hint2">Pick B's ramp mark, then run a speed check.</span>
+  </div>
+</section>
+
+<section class="col-right">
+  <div class="card">
+    <h2>Video analysis log</h2>
+    <table class="ledger"><tbody id="log"></tbody></table>
+    <div class="hint">The slow-mo camera times each object across a marked strip. You do the math: v = d ÷ t.</div>
+  </div>
+
+  <div id="right1">
+  <div class="card locked" id="cM">
+    <h2>Part 1 · Masses</h2>
+    <div class="note">The scale reads GRAMS. Record each mass in KILOGRAMS.</div>
+    <div class="field"><label>Mass of Object A (m<sub>A</sub>)</label><input id="inMA" type="number" step="0.001" placeholder="0.000"><span class="u">kg</span></div>
+    <div class="field"><label>Mass of Object B (m<sub>B</sub>)</label><input id="inMB" type="number" step="0.001" placeholder="0.000"><span class="u">kg</span></div>
+    <button class="btn mint" id="btnCM">✓ Check masses</button>
+    <div id="msgM"></div>
+  </div>
+  <div class="card locked" id="cT">
+    <h2>Part 1 · Baseline data</h2>
+    <div class="tt" id="tt"></div>
+    <div class="field"><label>v<sub>A</sub> (initial)</label><input id="inV1" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>v<sub>A</sub> (final)</label><input id="inV2" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>v<sub>B</sub> (final)</label><input id="inV3" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>p<sub>initial</sub> = m<sub>A</sub> × v<sub>Ai</sub></label><input id="inPI" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>p<sub>final</sub> = (m<sub>A</sub> × v<sub>Af</sub>) + (m<sub>B</sub> × v<sub>Bf</sub>)</label><input id="inPF" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn mint" id="btnCT">✓ Check this trial</button><button class="btn ghost sm" id="btnHT">Hint</button></div>
+    <div id="msgT"></div>
+  </div>
+  </div>
+
+  <div id="right2" class="hide">
+  <div class="card locked" id="cP">
+    <h2>Part 2 · Predict first</h2>
+    <div class="note">For both objects to stop, the total momentum before the collision has to be zero: m<sub>A</sub>v<sub>A</sub> = −(m<sub>B</sub>v<sub>B</sub>).</div>
+    <div class="field"><label>Speed of A before (v<sub>A</sub>)</label><input id="inSA" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>Speed of B before (size only)</label><input id="inSB" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div class="field"><label>Mass B NEEDS for a Perfect Stop</label><input id="inMN" type="number" step="0.001" placeholder="0.000"><span class="u">kg</span></div>
+    <div class="field"><label>Pennies to tape on (2.5 g each)</label><input id="inPN" type="number" step="1" placeholder="0"><span class="u">pennies</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn mint" id="btnCP">✓ Check my prediction</button><button class="btn ghost sm" id="btnHP">Hint</button></div>
+    <div id="msgP"></div>
+  </div>
+  <div class="card locked" id="cF">
+    <h2>Part 2 · Your Perfect Stop</h2>
+    <div class="note">Use your best trial (the one that stopped). Right is positive, so anything moving LEFT is negative.</div>
+    <div class="field"><label>Mass of B with pennies (m<sub>B</sub>)</label><input id="inM2" type="number" step="0.001" placeholder="0.000"><span class="u">kg</span></div>
+    <div class="field"><label>p<sub>A</sub> = m<sub>A</sub> × v<sub>A</sub></label><input id="inPA" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>p<sub>B</sub> = m<sub>B</sub> × v<sub>B</sub></label><input id="inPB" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>p<sub>initial</sub> (total) = p<sub>A</sub> + p<sub>B</sub></label><input id="inP0" type="number" step="0.001" placeholder="0.000"><span class="u">kg·m/s</span></div>
+    <div class="field"><label>v<sub>final</sub> of the stuck pair</label><input id="inVF" type="number" step="0.01" placeholder="0.00"><span class="u">m/s</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn lav" id="btnCF">✓ Check my Perfect Stop</button><button class="btn ghost sm" id="btnHF">Hint</button></div>
+    <div id="msgF"></div>
+  </div>
+  </div>
+</section>
+</main>
+<div class="foot">Collision Lab · EasyPrep STEM · Simulated track and camera. Real floors add more friction than this one does.</div>
+</div>
+
+<div class="ov on" id="ovStart">
+  <div class="modal">
+    <h2>Collision <span>Lab</span></h2>
+    <p><b>Part 1, Initial Collision:</b> launch Object A into a resting Object B three times and account for the momentum before and after.<br><b>Part 2, Perfect Stop:</b> send them at each other and engineer a head-on collision where BOTH stop dead.</p>
+    <p style="margin-bottom:4px"><b>Your name (first and last).</b> It goes on your lab report.</p>
+    <input class="name" id="inName" placeholder="e.g. Jordan Rivera" autocomplete="off">
+    <div class="note" style="margin-top:12px">Part 1 goes on your <b>Part 1</b> sheet and Part 2 on your <b>Part 2</b> sheet. Keep the sheet open in another tab and fill it in as you go. Each part ends with its own <b>completion code</b>. Your teacher will ask for this code.</div>
+    <div style="margin-top:10px"><button class="btn peach big" id="btnStart">Start the lab →</button></div>
+    <p class="hint" id="startErr"></p>
+    <details class="skip" id="skipBox"><summary>Already finished Part 1? Jump to Part 2 with your code</summary>
+      <p class="hint" style="margin:6px 0 8px">Type your name above EXACTLY as you did in Part 1, then your Part 1 code. No need to redo anything.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="name" id="inCode1" placeholder="HIT-1149-I" autocomplete="off" style="flex:1 1 150px;text-transform:uppercase"><button class="btn lemon" id="btnSkip">Go to Part 2 →</button></div>
+    </details>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm hide" id="btnResume">Continue where I left off</button><button class="btn ghost sm hide" id="btnWipe">Start over</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ovReport">
+  <div class="modal rep">
+    <h2 id="repTitle">Collision <span>lab report</span></h2>
+    <p id="repWho"></p>
+    <div id="repBody"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn mint" id="copyCode">Copy code</button>
+      <button class="btn ghost" id="printRep">Print / save PDF</button>
+      <button class="btn ghost" id="closeRep">Back to the lab</button>
+      <button class="btn lemon hide" id="goP2">Start Part 2 →</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ---------- constants ---------- */
+const TY = 430, PXM = 300, XL = 170, XR = 730, XC = 500, XC2 = 450, RATE = 0.38, PENNY = 2.5, PENMAX = 80;
+const OBJS = [
+  {id:"car",  name:"Toy cars",  gA:124, gB:100, e:0.60, loss:0.03, v0:1.20, w:58},
+  {id:"can",  name:"Soup cans", gA:340, gB:305, e:0.45, loss:0.04, v0:0.90, w:44},
+  {id:"puck", name:"Coasters",  gA:86,  gB:70,  e:0.70, loss:0.06, v0:1.40, w:52},
+];
+const FRAC = [0.60, 0.75, 0.90];
+const COL = {A:["#8FB8FF","#5F8FE0"], B:["#FFC9A8","#F09A6B"]};
+
+/* ---------- state ---------- */
+let studentName="", oi=null, view=1;
+let p1={wA:false,wB:false,mDone:false,mA:0,mB:0,runs:[false,false,false],tr:[{},{},{}],cur:0,done:false};
+let p2={mark:null,chk:false,pred:{done:false},n:0,runs:[],fin:{done:false},done:false};
+let anim={on:false}, rest=null, weighNow=null, weighT0=0, say=null;
+
+const $ = id => document.getElementById(id);
+const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+const sgn = (x,d=3) => (x>=0?"+":"−")+fmt(Math.abs(x),d);
+const r2 = x => Math.round(x*100)/100, r3 = x => Math.round(x*1000)/1000;
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+const HH = () => nameHash(studentName), O = () => OBJS[oi];
+const gA = () => O().gA + (HH()*7)%9-4, gB = () => O().gB + (HH()*3)%7-3;
+const kA = () => gA()/1000, kB = () => gB()/1000;
+const v0 = () => r2(O().v0 + ((HH()*11)%7-3)/100);
+function trial(k){ const s=[-0.022,0.008,0.026][(k+HH())%3];
+  const vAi=v0()*(1+s), o=O(), mA=kA(), mB=kB(), vAf=(mA-o.e*mB)/(mA+mB)*vAi*(1-o.loss), vBf=(1+o.e)*mA/(mA+mB)*vAi*(1-o.loss);
+  const t1=r3(0.30/vAi), t2=r3(0.10/vAf), t3=r3(0.30/vBf); return {vAi,vAf,vBf,t1,t2,t3, v1:0.30/t1, v2:0.10/t2, v3:0.30/t3}; }
+const vA2 = () => v0(), vB2 = (m=p2.mark) => r2(FRAC[m]*v0());
+const tA2 = () => r3(0.30/vA2()), tB2 = (m=p2.mark) => r3(0.30/vB2(m));
+const mB2 = n => (gB()+PENNY*n)/1000;
+const vfOf = n => (kA()*vA2()-mB2(n)*vB2())/(kA()+mB2(n));
+const needPennies = (m=p2.mark) => Math.round((kA()*(0.30/tA2())/(0.30/tB2(m))*1000-gB())/PENNY);
+const perfect = vf => Math.abs(vf)<=0.02;
+
+function save(){ try{ localStorage.setItem("collisionLab", JSON.stringify({studentName,oi,view,p1,p2})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("collisionLab")||"null"); }catch(e){ return null; } }
+
+/* ---------- drawing helpers ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d");
+function rr(x,y,w,h,r,fill,stroke,lw){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||3;ctx.stroke();} }
+function circ(x,y,r,fill,stroke,lw){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function ell(x,y,rx,ry,fill,stroke,lw){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2.5;ctx.stroke();} }
+function line(x1,y1,x2,y2,col,lw,dash){ ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=lw||2; ctx.lineCap="round"; if(dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore(); }
+function txt(s,x,y,size,col,align,weight){ ctx.font=(weight||700)+" "+size+"px Fredoka, Nunito, sans-serif"; ctx.fillStyle=col||"#4A3F5C"; ctx.textAlign=align||"center"; ctx.fillText(s,x,y); }
+const DARK="#3D3356";
+
+function drawRoom(two){
+  const g=ctx.createLinearGradient(0,0,0,TY); g.addColorStop(0,"#F3EEF9"); g.addColorStop(1,"#FBF4EC"); ctx.fillStyle=g; ctx.fillRect(0,0,900,620);
+  ctx.fillStyle="rgba(201,182,255,.16)"; for(let x=40;x<900;x+=120) ctx.fillRect(x,0,3,620);
+  rr(384,150,132,104,14,"#DCEBFF","#C9B6FF",6); line(450,153,450,251,"#C9B6FF",5); line(387,202,513,202,"#C9B6FF",5); ell(414,182,17,8,"#fff"); ell(426,176,12,7,"#fff"); ell(486,230,16,8,"#fff"); circ(488,178,10,"#FFE88A");
+  ctx.fillStyle="#EADFCE"; ctx.fillRect(0,560,900,60); ctx.fillStyle="#DCCDB6"; ctx.fillRect(0,560,900,4);
+  // table + ramps
+  rr(44,TY+16,22,130,6,"#D9C3A0"); rr(834,TY+16,22,130,6,"#D9C3A0");
+  ctx.fillStyle="#C9B6FF"; ctx.strokeStyle="#9C84E6"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(20,TY); ctx.lineTo(20,TY-92); ctx.lineTo(170,TY); ctx.closePath(); ctx.fill(); ctx.stroke();
+  if(two){ ctx.beginPath(); ctx.moveTo(880,TY); ctx.lineTo(880,TY-92); ctx.lineTo(730,TY); ctx.closePath(); ctx.fill(); ctx.stroke();
+    [[752,1,24],[775,2,43],[800,3,62]].forEach(([x,n,h])=>{ const sx=730+h/92*150; line(sx,TY-h,858,TY-h,"#9C84E6",1.5,[2,3]); circ(866,TY-h,8,p2.mark===n-1?"#FFE88A":"#fff","#9C84E6",2); txt(String(n),866,TY-h+4,11,"#4A3F5C"); }); }
+  rr(14,TY,872,17,6,"#F2D7A0","#D4AE62",3);
+}
+const liftL = xc => Math.max(0,(170-xc)/150*92), liftR = xc => Math.max(0,(xc-730)/150*92);
+// front = leading face. dir +1 faces right (body to the left of front), -1 faces left
+function drawObj(who,front,dir,pennies){
+  const o=O(), w=o.w, x0=dir>0?front-w:front, xc=x0+w/2, lift=dir>0?liftL(xc):(view===2?liftR(xc):0), [c,cd]=COL[who];
+  ctx.save(); ctx.translate(0,-lift);
+  let top=TY-15;
+  if(o.id==="car"){ rr(x0,TY-27,w,18,8,c,cd,2.5); rr(x0+(dir>0?10:20),TY-40,28,15,7,c,cd,2.5); rr(x0+(dir>0?24:23),TY-37,11,9,3,"#EEF5FF"); [x0+13,x0+w-13].forEach(x=>{ circ(x,TY-7,7,"#4A3F5C","#2E2745",2); circ(x,TY-7,2.5,"#C6CFDC"); }); txt(who,xc,TY-13,12,DARK); top=TY-40; }
+  else if(o.id==="can"){ circ(xc,TY-22,22,c,cd,2.5); const a=front/22; ctx.strokeStyle=cd; ctx.lineWidth=2; for(let i=0;i<4;i++){ ctx.beginPath(); ctx.moveTo(xc+Math.cos(a+i*Math.PI/2)*12,TY-22+Math.sin(a+i*Math.PI/2)*12); ctx.lineTo(xc+Math.cos(a+i*Math.PI/2)*20,TY-22+Math.sin(a+i*Math.PI/2)*20); ctx.stroke(); } circ(xc,TY-22,11,"#fff",cd,2); txt(who,xc,TY-17.5,13,DARK); top=TY-44; }
+  else { rr(x0,TY-16,w,16,8,c,cd,2.5); txt(who,xc,TY-4,11.5,DARK); top=TY-16; }
+  if(pennies>0){ const n=Math.min(6,pennies); for(let i=0;i<n;i++) ell(xc,top-3-i*3.5,11,3.5,"#D98A4E","#A8622E",1.5); txt("×"+pennies,xc,top-10-n*3.5,11,"#A8622E"); }
+  ctx.restore();
+}
+function strip(a,b,label,on,col,row){ rr(a,TY+2,b-a,13,3,on?col:"#fff",col,2.5); line(a,TY-7,a,TY+17,col,2.5); line(b,TY-7,b,TY+17,col,2.5); const y=TY+36+(row||0)*17; if(row) line((a+b)/2,TY+17,(a+b)/2,y-12,col,1.5,[2,3]); txt(label,(a+b)/2,y,12,"#6B5F80"); }
+
+/* ---------- MO, the robot guide ---------- */
+function moLine(){
+  if(say) return say;
+  if(oi==null) return "Hi, I'm MO! Pick two objects for your collision track.";
+  if(view===1){
+    if(!p1.mDone) return (p1.wA&&p1.wB)? "Scale reads grams. Record each mass in KILOGRAMS, then check." : "First, put Object A and Object B on the scale.";
+    if(anim.on) return "Rolling! The camera times each object across its strip.";
+    const n=p1.runs.filter(Boolean).length, d=p1.tr.filter(t=>t.done).length;
+    if(p1.done) return "Part 1 done! Grab your code, then head to Part 2.";
+    if(n<3 && d>=n) return "Run trial "+(n+1)+". A rolls down the ramp into B, which is sitting still.";
+    return "Trial "+(d+1)+": use v = d ÷ t for each strip, then find the momentum before and after.";
+  }
+  if(p2.mark==null) return "Part 2! Now BOTH move. Pick a ramp mark for B: higher mark, faster launch.";
+  if(anim.on) return anim.kind==="chk"? "Speed check: timing A and B before they meet." : "Here they come...";
+  if(!p2.chk) return "Run a speed check so you know how fast each one is going.";
+  if(!p2.pred.done) return "Predict first: what mass does B need so the two momentums cancel?";
+  if(p2.done) return "PERFECT STOP recorded! Grab your Part 2 code.";
+  const ok=p2.runs.some(r=>r.perfect);
+  if(p2.runs.length<3) return ok? "It stopped! Run "+(3-p2.runs.length)+" more: try a few pennies more or fewer and see what changes." : "Tape on your pennies and launch both. You need 3 trials.";
+  return ok? "Now record your Perfect Stop on the right." : "No Perfect Stop yet. Adjust the pennies and launch again.";
+}
+function drawMO(s,t){
+  const x=66, y=150+Math.sin((t||0)*2.2)*3, lav="#C9B6FF", lavD="#9C84E6";
+  line(x,y-34,x,y-48,lavD,3); circ(x,y-50,4.5,"#E0556C");
+  rr(x-15,y+14,30,26,9,"#fff",lavD,2.5); rr(x-27,y+18,11,18,5,lav,lavD,2); rr(x+16,y+18,11,18,5,lav,lavD,2);
+  circ(x-9,y+44,6,"#4A3F5C"); circ(x+9,y+44,6,"#4A3F5C");
+  rr(x-28,y-34,56,46,14,"#fff",lavD,3); rr(x-21,y-27,42,30,9,DARK);
+  circ(x-9,y-14,4,"#8FE3FF"); circ(x+9,y-14,4,"#8FE3FF"); ctx.strokeStyle="#8FE3FF"; ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.beginPath(); ctx.arc(x,y-9,6,0.25,Math.PI-0.25); ctx.stroke();
+  circ(x,y+25,3.2,"#FFC93C");
+  rr(x-20,y+54,40,15,7,"#FFF4B8","#F0DC8A",2); txt("MO",x,y+65.5,10,"#6B5F80");
+  const bx=112, bw=250, pad=12; ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.textAlign="left";
+  const words=s.split(" "), lines=[]; let cur="";
+  for(const w of words){ const tst=cur?cur+" "+w:w; if(ctx.measureText(tst).width>bw-pad*2){ lines.push(cur); cur=w; } else cur=tst; } if(cur) lines.push(cur);
+  const bh=lines.length*19+pad*2, by=Math.max(60,y-16-bh/2);
+  rr(bx,by,bw,bh,14,"#fff",lav);
+  const ty=Math.min(by+bh-22,Math.max(by+8,y-22));
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+2,ty); ctx.lineTo(x+30,y-12); ctx.lineTo(bx+2,ty+16); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle=lav; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx+1,ty); ctx.lineTo(x+30,y-12); ctx.lineTo(bx+1,ty+16); ctx.stroke();
+  ctx.font="600 14px Fredoka, Nunito, sans-serif"; ctx.fillStyle="#4A3F5C"; ctx.textAlign="left"; lines.forEach((l,i)=>ctx.fillText(l,bx+pad,by+pad+14+i*19));
+}
+function card(title,rows,note,noteCol){
+  const X=560,Y=58,W=324,Hh=34+rows.length*23+(note?26:0); rr(X,Y,W,Hh,14,DARK,"#2E2745",3); txt(title,X+W/2,Y+21,11.5,"#C9B6FF");
+  rows.forEach((r,i)=>{ txt(r[0],X+16,Y+45+i*23,13.5,"#fff","left"); txt(r[1],X+W-16,Y+45+i*23,13.5,"#FFE88A","right"); });
+  if(note) txt(note,X+W/2,Y+Hh-11,13.5,noteCol||"#9FE6C4");
+}
+
+/* ---------- scenes ---------- */
+const ease = u => { u=Math.max(0,Math.min(1,u)); return u*u; };
+function scene1(k,t){                      // t = 0 when A reaches the flat track
+  const T=trial(k), tc=(XC-XL)/PXM/T.vAi; let ax,bx=XC;
+  if(t<0) ax=100+(XL-100)*ease((t+0.5)/0.5); else if(t<tc) ax=XL+T.vAi*t*PXM; else { ax=XC+T.vAf*(t-tc)*PXM; bx=XC+T.vBf*(t-tc)*PXM; }
+  const w=O().w, bf=bx+w, S1=[XC-102,XC-12], S2=[XC+6,XC+36], S3=[XC+w+10,XC+w+100];
+  strip(S1[0],S1[1],"A before · 0.30 m",ax>=S1[0]&&ax<=S1[1]&&t<tc,"#8FB8FF");
+  strip(S2[0],S2[1],"A after · 0.10 m",t>=tc&&ax>=S2[0]&&ax<=S2[1],"#8FB8FF",1);
+  strip(S3[0],S3[1],"B after · 0.30 m",bf>=S3[0]&&bf<=S3[1]&&t>=tc,"#F09A6B");
+  drawObj("B",bx,-1,0); drawObj("A",ax,1,0);
+  if(t>=tc && t<tc+0.08){ [[-8,-52],[0,-60],[8,-52]].forEach(([dx,dy])=>line(XC+dx*0.4,TY-34,XC+dx,TY+dy,"#E0556C",3)); }
+  return {end: tc+Math.min(1.3,(868-(XC+w))/PXM/T.vBf), tc};
+}
+function scene2(n,t,chk){                   // t = 0 at contact
+  const vA=vA2(), vB=vB2(), tA=(XC2-XL)/PXM/vA, tB=(XR-XC2)/PXM/vB, vf=vfOf(n), startB=[752,775,800][p2.mark];
+  const stopA=-(12/PXM)/vA, stopB=-(12/PXM)/vB;
+  let ax,bx; const ta=chk?Math.min(t,stopA):t, tb=chk?Math.min(t,stopB):t;
+  if(ta<-tA-0.5) ax=100; else if(ta<-tA) ax=100+(XL-100)*ease((ta+tA+0.5)/0.5); else if(ta<0) ax=XC2+vA*ta*PXM; else ax=XC2+vf*ta*PXM;
+  if(tb<-tB-0.5) bx=startB; else if(tb<-tB) bx=startB+(XR-startB)*ease((tb+tB+0.5)/0.5); else if(tb<0) bx=XC2-vB*tb*PXM; else bx=XC2+vf*tb*PXM;
+  const SA=[XC2-102,XC2-12], SB=[XC2+12,XC2+102];
+  strip(SA[0],SA[1],"A before · 0.30 m",ax>=SA[0]&&ax<=SA[1]&&t<0,"#8FB8FF"); strip(SB[0],SB[1],"B before · 0.30 m",bx>=SB[0]&&bx<=SB[1]&&t<0,"#F09A6B");
+  line(XC2,TY+2,XC2,TY+46,"#E0556C",2,[4,4]); txt("center",XC2,TY+60,11,"#C23B52");
+  drawObj("B",bx,-1,n); drawObj("A",ax,1,0);
+  if(!chk && t>=0 && t<0.08){ [[-8,-52],[0,-60],[8,-52]].forEach(([dx,dy])=>line(XC2+dx*0.4,TY-34,XC2+dx,TY+dy,"#E0556C",3)); }
+  if(!chk && t>=1 && perfect(vf)){ [[-70,-80],[70,-84],[-40,-112],[44,-116],[0,-128]].forEach(([dx,dy],i)=>{ const s=5+((i*7)%4); txt("✦",XC2+dx,TY+dy,14+s,"#FFC93C"); }); }
+  return {start:-Math.max(tA,tB)-0.75, end: chk? Math.max(stopA,stopB)+0.35 : 1.0};
+}
+function drawScale(now){
+  const xs=680, yb=TY; rr(xs-58,yb-14,116,14,6,"#FFFFFF","#C9B6FF",3); rr(xs-66,yb-22,132,9,4,"#EEF5FF","#C9B6FF",2.5);
+  let val=0; if(weighNow){ const k=Math.min(1,(now-weighT0)/700), tv=weighNow==="A"?gA():gB(); val=k>=1?tv:tv*(1-Math.pow(1-k,3)); ctx.save(); ctx.translate(0,-22); drawObj(weighNow,xs+(weighNow==="A"?O().w/2:-O().w/2),weighNow==="A"?1:-1,0); ctx.restore(); }
+  rr(xs-70,yb-150,140,58,14,DARK,"#2E2745",3); rr(xs-60,yb-128,120,30,8,"#D9F5E6"); txt("KITCHEN SCALE",xs,yb-134,10.5,"#C9B6FF"); txt(Math.round(val)+" g",xs,yb-105,22,"#2E5D49");
+}
+function draw(){
+  const now=performance.now(); drawRoom(view===2);
+  if(oi==null){ txt("Pick a pair of objects on the left.",470,300,18,"#C6BBD6"); drawMO(moLine(),now/1000); return; }
+  let cardSpec=null;
+  if(view===1){
+    if(anim.on && anim.kind==="p1"){ scene1(anim.k,anim.t); }
+    else if(rest && rest.kind==="p1"){ const s=scene1(rest.k,1e3>0? scene1End(rest.k):0); const T=trial(rest.k); cardSpec=["VIDEO ANALYSIS · TRIAL "+(rest.k+1),[["A before",  "0.30 m in "+fmt(T.t1,3)+" s"],["A after","0.10 m in "+fmt(T.t2,3)+" s"],["B after","0.30 m in "+fmt(T.t3,3)+" s"]]]; }
+    else { strip(XC-102,XC-12,"A before · 0.30 m",false,"#8FB8FF"); strip(XC+6,XC+36,"A after · 0.10 m",false,"#8FB8FF",1); strip(XC+O().w+10,XC+O().w+100,"B after · 0.30 m",false,"#F09A6B");
+      if(!p1.mDone){ if(weighNow!=="B") drawObj("B",XC,-1,0); if(weighNow!=="A") drawObj("A",100,1,0); drawScale(now); } else { drawObj("B",XC,-1,0); drawObj("A",100,1,0); } }
+  } else {
+    if(p2.mark==null){ strip(XC2-102,XC2-12,"A before · 0.30 m",false,"#8FB8FF"); strip(XC2+12,XC2+102,"B before · 0.30 m",false,"#F09A6B"); drawObj("A",100,1,0); drawObj("B",775,-1,p2.n); }
+    else if(anim.on && (anim.kind==="p2"||anim.kind==="chk")) scene2(anim.n,anim.t,anim.kind==="chk");
+    else if(rest && rest.kind==="p2"){ scene2(rest.n,1.0,false); const vf=vfOf(rest.n), d=Math.abs(vf); cardSpec=["VIDEO ANALYSIS · "+rest.n+" PENNIES",[["A before","0.30 m in "+fmt(tA2(),3)+" s"],["B before","0.30 m in "+fmt(tB2(),3)+" s"],["Stuck pair after", fmt(d,2)+" m in 1.00 s"+(d<0.005?"":vf>0?" →":" ←")]], perfect(vf)?"PERFECT STOP!":"Still moving "+(vf>0?"RIGHT":"LEFT"), perfect(vf)?"#9FE6C4":"#FFB7A8"]; }
+    else if(rest && rest.kind==="chk"){ scene2(p2.n,1e3,true); cardSpec=["SPEED CHECK · MARK "+(p2.mark+1),[["A before","0.30 m in "+fmt(tA2(),3)+" s"],["B before","0.30 m in "+fmt(tB2(),3)+" s"]]]; }
+    else { scene2(p2.n,-1e3,false); }
+  }
+  if(cardSpec) card(...cardSpec);
+  drawMO(moLine(),now/1000);
+}
+function scene1End(k){ const T=trial(k), tc=(XC-XL)/PXM/T.vAi; return tc+Math.min(1.3,(868-(XC+O().w))/PXM/T.vBf); }
+
+/* ---------- animation ---------- */
+function play(kind,extra){ if(anim.on||oi==null) return; say=null; rest=null;
+  let start,end; if(kind==="p1"){ start=-0.75; end=scene1End(extra.k); } else { const vA=vA2(), vB=vB2(), tA=(XC2-XL)/PXM/vA, tB=(XR-XC2)/PXM/vB; start=-Math.max(tA,tB)-0.75; end= kind==="chk"? Math.max(-(12/PXM)/vA,-(12/PXM)/vB)+0.35 : 1.0; }
+  anim=Object.assign({on:true,kind,t0:performance.now(),start,end,t:start},extra); $("tagRec").classList.remove("hide"); syncUI(); requestAnimationFrame(tick); }
+function tick(){ if(!anim.on) return; anim.t=anim.start+(performance.now()-anim.t0)/1000*RATE;
+  if(anim.t>=anim.end){ anim.on=false; $("tagRec").classList.add("hide"); finish(); return; } draw(); requestAnimationFrame(tick); }
+function finish(){
+  if(anim.kind==="p1"){ p1.runs[anim.k]=true; p1.cur=anim.k; rest={kind:"p1",k:anim.k}; }
+  else if(anim.kind==="chk"){ p2.chk=true; rest={kind:"chk"}; }
+  else { const vf=vfOf(anim.n); p2.runs.push({n:anim.n,mB:mB2(anim.n),vf,perfect:perfect(vf)}); rest={kind:"p2",n:anim.n}; }
+  syncUI(); draw(); save();
+}
+function weigh(w){ if(oi==null||p1.mDone||anim.on) return; weighNow=w; weighT0=performance.now(); p1["w"+w]=true; say=null; syncUI(); save(); const f=()=>{ draw(); if(performance.now()-weighT0<800) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+$("btnWA").onclick=()=>weigh("A"); $("btnWB").onclick=()=>weigh("B");
+$("btnRun").onclick=()=>{ const k=p1.runs.findIndex(x=>!x); if(k<0) return; play("p1",{k}); };
+$("btnChk").onclick=()=>{ if(p2.mark==null) return; play("chk",{n:p2.n}); };
+$("btnLaunch").onclick=()=>{ if(!p2.pred.done) return; play("p2",{n:p2.n}); };
+
+/* ---------- checks ---------- */
+const num = id => parseFloat($(id).value);
+const box = (id,cls,html) => { $(id).innerHTML=html? '<div class="'+cls+'">'+html+'</div>' : ''; };
+const near = (x,t,rel,abs) => Math.abs(x-t)<=Math.abs(t)*rel+(abs||0);
+$("btnCM").onclick=()=>{
+  const a=num("inMA"), b=num("inMB"); if([a,b].some(isNaN)){ box("msgM","warn","Put each object on the scale, then fill in both masses."); return; }
+  const e=[]; if(!near(a,kA(),0,0.0006)) e.push(near(a,gA(),0,0.6)? "Object A: that is in GRAMS. Divide by 1000 to get kilograms." : "Object A: read the scale again ("+gA()+" g) and convert to kg.");
+  if(!near(b,kB(),0,0.0006)) e.push(near(b,gB(),0,0.6)? "Object B: that is in GRAMS. Divide by 1000 to get kilograms." : "Object B: read the scale again ("+gB()+" g) and convert to kg.");
+  if(e.length){ say="Check the units on those masses."; box("msgM","bad",e.join("<br>")); draw(); return; }
+  p1.mDone=true; p1.mA=a; p1.mB=b; weighNow=null; say=null; box("msgM","ok","Masses check out: m<sub>A</sub> = "+fmt(a,3)+" kg, m<sub>B</sub> = "+fmt(b,3)+" kg."); syncUI(); draw(); save();
+};
+$("btnHT").onclick=()=>box("msgT","warn","Each velocity is v = d ÷ t from the video analysis log. Careful: A's AFTER strip is only 0.10 m. Then p initial = m<sub>A</sub> × v<sub>A</sub> (initial), and p final adds A's and B's momentum after the collision.");
+$("btnCT").onclick=()=>{
+  const k=p1.cur; if(!p1.runs[k]){ box("msgT","warn","Run trial "+(k+1)+" first."); return; }
+  const a=num("inV1"), b=num("inV2"), c=num("inV3"), pi=num("inPI"), pf=num("inPF"); if([a,b,c,pi,pf].some(isNaN)){ box("msgT","warn","Fill in all five boxes for trial "+(k+1)+"."); return; }
+  const T=trial(k), e=[];
+  if(!near(a,T.v1,0.025)) e.push("v<sub>A</sub> initial: 0.30 m ÷ "+fmt(T.t1,3)+" s.");
+  if(!near(b,T.v2,0.03,0.003)) e.push(near(b,0.30/T.t2,0.03)? "v<sub>A</sub> final: A's AFTER strip is only 0.10 m long, not 0.30 m." : "v<sub>A</sub> final: 0.10 m ÷ "+fmt(T.t2,3)+" s.");
+  if(!near(c,T.v3,0.025)) e.push("v<sub>B</sub> final: 0.30 m ÷ "+fmt(T.t3,3)+" s.");
+  if(!e.length){ if(!near(pi,p1.mA*a,0.025,0.0006)) e.push(near(pi,p1.mA*1000*a,0.03)? "p initial: use the mass in KILOGRAMS." : "p initial = m<sub>A</sub> × v<sub>A</sub> initial = "+fmt(p1.mA,3)+" kg × "+fmt(a,2)+" m/s.");
+    if(!near(pf,p1.mA*b+p1.mB*c,0.025,0.0006)) e.push(near(pf,p1.mA*b,0.03,0.0006)||near(pf,p1.mB*c,0.03,0.0006)? "p final needs BOTH objects: (m<sub>A</sub> × v<sub>A</sub> final) + (m<sub>B</sub> × v<sub>B</sub> final)." : "p final = ("+fmt(p1.mA,3)+" × "+fmt(b,2)+") + ("+fmt(p1.mB,3)+" × "+fmt(c,2)+")."); }
+  if(e.length){ say="Close! Fix what I flagged for trial "+(k+1)+"."; box("msgT","bad",e.join("<br>")); draw(); return; }
+  p1.tr[k]={done:true,v1:a,v2:b,v3:c,pi,pf}; say=null;
+  if(p1.tr.every(t=>t.done)){ p1.done=true; box("msgT","ok","All three trials check out! Answer the Preliminary Analysis questions on your sheet, then get your Part 1 code."); syncUI(); draw(); save(); showReport(1); return; }
+  const nx=p1.tr.findIndex(t=>!t.done); box("msgT","ok","Trial "+(k+1)+" checks out. p initial = "+fmt(pi,3)+" and p final = "+fmt(pf,3)+" kg·m/s. On to trial "+(nx+1)+"."); p1.cur=nx; loadTrial(); syncUI(); draw(); save();
+};
+$("btnHP").onclick=()=>box("msgP","warn","Speeds come from the speed check: v = 0.30 m ÷ t. Then set m<sub>A</sub> × v<sub>A</sub> equal to m<sub>B</sub> × v<sub>B</sub> and solve for m<sub>B</sub>. Pennies = (mass B needs − mass B has now) ÷ 2.5 g.");
+$("btnCP").onclick=()=>{
+  if(!p2.chk){ box("msgP","warn","Run a speed check first."); return; }
+  const a=num("inSA"), b=Math.abs(num("inSB")), m=num("inMN"), n=num("inPN"); if([a,b,m,n].some(isNaN)){ box("msgP","warn","Fill in all four boxes."); return; }
+  const sa=0.30/tA2(), sb=0.30/tB2(), need=p1.mA*sa/sb, pn=needPennies(), e=[];
+  if(!near(a,sa,0.025)) e.push("Speed of A: 0.30 m ÷ "+fmt(tA2(),3)+" s."); if(!near(b,sb,0.025)) e.push("Speed of B: 0.30 m ÷ "+fmt(tB2(),3)+" s.");
+  if(!e.length){ if(!near(m,need,0.02,0.0006)) e.push(near(m,p1.mA*sb/sa,0.02)? "Flip it: m<sub>B</sub> = (m<sub>A</sub> × v<sub>A</sub>) ÷ v<sub>B</sub>. The SLOWER object needs MORE mass." : near(m,need*1000,0.02)? "Mass B needs: give it in KILOGRAMS." : "Mass B needs: m<sub>A</sub> × v<sub>A</sub> = m<sub>B</sub> × v<sub>B</sub>, so m<sub>B</sub> = ("+fmt(p1.mA,3)+" × "+fmt(a,2)+") ÷ "+fmt(b,2)+".");
+    else if(Math.abs(n-pn)>1) e.push("Pennies: (mass B needs − "+fmt(kB(),3)+" kg it has now) ÷ 0.0025 kg per penny."); }
+  if(e.length){ say="Not yet. Check your prediction."; box("msgP","bad",e.join("<br>")); draw(); return; }
+  if(pn>PENMAX||pn<0){ p2.chk=false; rest=null; box("msgP","warn","Your math is right, but that takes "+pn+" pennies and B can only hold "+PENMAX+". Pick a FASTER ramp mark for B, run a new speed check, and predict again."); say="Too many pennies! Try a higher ramp mark."; syncUI(); draw(); save(); return; }
+  p2.pred={done:true,sa:a,sb:b,m,n}; say=null; box("msgP","ok","Prediction locked in: B needs about "+fmt(m,3)+" kg, which is "+Math.round(n)+" pennies. Tape them on and launch both!"); syncUI(); draw(); save();
+};
+$("btnHF").onclick=()=>box("msgF","warn","Pick the trial that stopped. m<sub>B</sub> is B plus its pennies, in kg. A moves right (+) and B moves LEFT (−), so p<sub>B</sub> is negative. v final = the distance the stuck pair moved ÷ 1.00 s.");
+$("btnCF").onclick=()=>{
+  if(p2.runs.length<3){ box("msgF","warn","Run at least 3 trials first. You have "+p2.runs.length+"."); return; }
+  const ok=p2.runs.filter(r=>r.perfect); if(!ok.length){ box("msgF","warn","None of your trials is a Perfect Stop yet. Adjust the pennies and launch again."); return; }
+  const m=num("inM2"), pa=num("inPA"), pb=num("inPB"), p0=num("inP0"), vf=num("inVF"); if([m,pa,pb,p0,vf].some(isNaN)){ box("msgF","warn","Fill in all five boxes."); return; }
+  const run=ok.find(r=>near(m,r.mB,0,0.0006)), e=[];
+  if(!run) e.push(p2.runs.some(r=>near(m,r.mB,0,0.0006))? "That trial kept moving. Use a trial that STOPPED." : "m<sub>B</sub>: B's mass plus its pennies for your Perfect Stop trial, in kg (check the log).");
+  else { if(!near(pa,p1.mA*p2.pred.sa,0.025,0.0006)) e.push("p<sub>A</sub> = m<sub>A</sub> × v<sub>A</sub> = "+fmt(p1.mA,3)+" × "+fmt(p2.pred.sa,2)+".");
+    if(!near(Math.abs(pb),m*p2.pred.sb,0.025,0.0006)) e.push("p<sub>B</sub> = m<sub>B</sub> × v<sub>B</sub> = "+fmt(m,3)+" × "+fmt(p2.pred.sb,2)+" (and B moves left)."); else if(pb>0) e.push("p<sub>B</sub>: right size, but B is moving LEFT, so it is NEGATIVE.");
+    if(!e.length && Math.abs(p0-(pa+pb))>0.0025) e.push("p initial (total) = p<sub>A</sub> + p<sub>B</sub>. Add them with their signs.");
+    if(!e.length && Math.abs(vf-run.vf)>0.012) e.push("v final: the stuck pair moved "+fmt(Math.abs(run.vf),2)+" m in 1.00 s."); }
+  if(e.length){ say="Almost. Check the notes on the right."; box("msgF","bad",e.join("<br>")); draw(); return; }
+  p2.fin={done:true,n:run.n,m,pa,pb,p0,vf}; p2.done=true; say=null; box("msgF","ok","That is a Perfect Stop! The two momentums cancel, so the total is zero before AND after. Write your CER on the sheet, then get your Part 2 code."); syncUI(); draw(); save(); showReport(2);
+};
+
+/* ---------- UI ---------- */
+function icon(o){ const m={car:'<rect x="5" y="22" width="36" height="11" rx="5" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2"/><rect x="12" y="14" width="18" height="10" rx="4" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2"/><circle cx="13" cy="35" r="4.5" fill="#4A3F5C"/><circle cx="33" cy="35" r="4.5" fill="#4A3F5C"/>',
+  can:'<circle cx="23" cy="24" r="15" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2.5"/><circle cx="23" cy="24" r="7" fill="#fff" stroke="#5F8FE0" stroke-width="2"/>',
+  puck:'<rect x="6" y="20" width="34" height="11" rx="5.5" fill="#8FB8FF" stroke="#5F8FE0" stroke-width="2.5"/>'}; return '<svg viewBox="0 0 46 46">'+m[o.id]+'</svg>'; }
+function refreshShelf(){ const lock=anim.on||p1.wA||p1.wB;
+  $("shelf").innerHTML=OBJS.map((o,i)=>'<div class="obj'+(oi===i?' active':'')+(lock?' lockedo':'')+'" data-i="'+i+'">'+icon(o)+'<div class="nm">'+o.name+'</div></div>').join("");
+  [...$("shelf").children].forEach(c=>c.onclick=()=>{ oi=+c.dataset.i; say=null; syncUI(); draw(); save(); }); }
+function loadTrial(){ const t=p1.tr[p1.cur]||{}; [["inV1","v1",2],["inV2","v2",2],["inV3","v3",2],["inPI","pi",3],["inPF","pf",3]].forEach(([id,k,d])=>{ $(id).value=t.done? fmt(t[k],d) : ""; $(id).disabled=!!t.done; }); $("btnCT").disabled=!!t.done; }
+function renderLog(){
+  const rows=[]; const H=t=>rows.push('<tr><td class="h" colspan="2">'+t+'</td></tr>'), Rw=(a,b)=>rows.push('<tr><td>'+a+'</td><td>'+b+'</td></tr>');
+  if(oi==null){ rows.push('<tr><td>Nothing recorded yet</td><td><span class="hid">···</span></td></tr>'); }
+  else if(view===1){ if(!p1.runs.some(Boolean)) rows.push('<tr><td>Run a trial to fill this in</td><td><span class="hid">···</span></td></tr>');
+    p1.runs.forEach((r,k)=>{ if(!r) return; const T=trial(k); H("Trial "+(k+1)); Rw("A before","0.30 m in "+fmt(T.t1,3)+" s"); Rw("A after","0.10 m in "+fmt(T.t2,3)+" s"); Rw("B after","0.30 m in "+fmt(T.t3,3)+" s"); }); }
+  else { if(!p2.chk) rows.push('<tr><td>Run a speed check to fill this in</td><td><span class="hid">···</span></td></tr>');
+    else { H("Speed check · B on mark "+(p2.mark+1)); Rw("A before","0.30 m in "+fmt(tA2(),3)+" s"); Rw("B before","0.30 m in "+fmt(tB2(),3)+" s"); }
+    p2.runs.forEach((r,i)=>{ H("Trial "+(i+1)+" · "+r.n+" pennies · B = "+fmt(r.mB*1000,1)+" g"); const d=Math.abs(r.vf); Rw("Stuck pair after", fmt(d,2)+" m in 1.00 s"+(d<0.005?"":r.vf>0?" (right)":" (left)")); Rw("Result", r.perfect? "PERFECT STOP" : "kept moving "+(r.vf>0?"right":"left")); }); }
+  $("log").innerHTML=rows.join("");
+}
+function renderSteps(){
+  const n1=p1.runs.filter(Boolean).length, items=[
+    ["Pick your objects","Two similar objects for the track.", oi!=null],
+    ["Mass A and B","On the scale, then in KILOGRAMS.", p1.mDone],
+    ["Run 3 trials","A hits a STATIONARY B. Recorded in slow-mo.", n1===3],
+    ["Baseline data","Velocities and momentum for all 3 trials. Part 1 code!", p1.done],
+    ["Speed check and predict","Use m₁v₁ = −(m₂v₂) to predict B's mass.", p2.pred.done],
+    ["Build and test","At least 3 trials, one a Perfect Stop.", p2.runs.length>=3&&p2.runs.some(r=>r.perfect)],
+    ["Record the Perfect Stop","Momentum before and v final. Part 2 code!", p2.done]];
+  const nowIdx=items.findIndex(i=>!i[2]);
+  $("steps").innerHTML=items.map((it,i)=>(i===0?'<div class="shelfLab">Part 1 · Initial Collision</div>':i===4?'<div class="shelfLab">Part 2 · Perfect Stop</div>':'')+'<div class="step'+(it[2]?' done':(i===nowIdx?' now':''))+'"><div class="n">'+(it[2]?'✓':i+1)+'</div><div class="t"><b>'+it[0]+'</b>'+it[1]+'</div></div>').join("");
+  const n=items.filter(i=>i[2]).length; $("progTxt").textContent=n+" / 7 steps"; $("dots").innerHTML=items.map(i=>'<span class="dot'+(i[2]?' on':'')+'"></span>').join("");
+}
+function syncUI(){
+  const has=oi!=null, busy=anim.on;
+  $("tab1").classList.toggle("on",view===1); $("tab2").classList.toggle("on",view===2); $("tab2").disabled=!p1.done;
+  $("tagG").textContent= has? O().name+" · "+(view===1?"A hits a resting B":"head-on, sticky bumpers") : "Pick your objects";
+  $("p1Controls").classList.toggle("hide",view!==1); $("p2Controls").classList.toggle("hide",view!==2); $("right1").classList.toggle("hide",view!==1); $("right2").classList.toggle("hide",view!==2); $("setupCard").classList.toggle("hide",view!==2);
+  // part 1
+  $("btnWA").classList.toggle("hide",p1.mDone); $("btnWB").classList.toggle("hide",p1.mDone); $("btnWA").disabled=!has||busy; $("btnWB").disabled=!has||busy;
+  $("btnWA").textContent=(p1.wA?"✓ ":"⚖ ")+"Mass Object A"; $("btnWB").textContent=(p1.wB?"✓ ":"⚖ ")+"Mass Object B";
+  const nr=p1.runs.filter(Boolean).length, nd=p1.tr.filter(t=>t.done).length;
+  $("btnRun").classList.toggle("hide",!p1.mDone); $("btnRun").disabled=busy||nr>=3||nr>nd; $("btnRun").textContent= nr>=3? "✓ 3 trials recorded" : "▶ Run trial "+(nr+1);
+  $("hint1").textContent= !has? "Pick a pair of objects to start." : !p1.mDone? "Mass both objects, then check the masses on the right." : nr>nd? "Fill in trial "+(nd+1)+" on the right and check it before the next run." : nr<3? "Ready for trial "+(nr+1)+"." : p1.done? "Part 1 complete. Open Part 2 from the tab at the top." : "Finish the last trial's math on the right.";
+  $("cM").classList.toggle("locked",!(p1.wA&&p1.wB)); ["inMA","inMB"].forEach(i=>$(i).disabled=p1.mDone); $("btnCM").disabled=p1.mDone;
+  $("cT").classList.toggle("locked",!p1.mDone||nr===0);
+  $("tt").innerHTML=[0,1,2].map(k=>'<button data-k="'+k+'" class="'+(p1.cur===k?'on ':'')+(p1.tr[k].done?'dn':'')+'"'+(p1.runs[k]?'':' disabled')+'>'+(p1.tr[k].done?'✓ ':'')+'Trial '+(k+1)+'</button>').join("");
+  [...$("tt").children].forEach(b=>b.onclick=()=>{ p1.cur=+b.dataset.k; if(p1.runs[p1.cur]) rest={kind:"p1",k:p1.cur}; box("msgT","",""); loadTrial(); syncUI(); draw(); });
+  loadTrial();
+  // part 2
+  $("marks").innerHTML=[0,1,2].map(m=>'<button data-m="'+m+'" class="'+(p2.mark===m?'active':'')+'"'+((p2.pred.done||busy)?' disabled':'')+'>Mark '+(m+1)+'<br><span style="font-weight:600;font-size:11px;color:#9A8FB0">'+['slow','medium','fast'][m]+'</span></button>').join("");
+  [...$("marks").children].forEach(b=>b.onclick=()=>{ p2.mark=+b.dataset.m; p2.chk=false; rest=null; say=null; syncUI(); draw(); save(); });
+  $("penN").textContent=p2.n+(p2.n===1?" penny":" pennies"); $("scaleNote").innerHTML= has? "B on the scale: <b>"+fmt(gB()+PENNY*p2.n,1)+" g</b>" : "B on the scale: — g";
+  ["pm5","pm1","pp1","pp5"].forEach(i=>$(i).disabled=busy);
+  $("btnChk").disabled=busy||p2.mark==null||p2.pred.done; $("btnChk").textContent=p2.chk?"↻ Speed check again":"▶ Speed check"; $("btnChk").classList.toggle("hide",p2.pred.done);
+  $("btnLaunch").disabled=busy||!p2.pred.done; $("btnLaunch").textContent="▶ Launch both (trial "+(p2.runs.length+1)+")";
+  const okp=p2.runs.some(r=>r.perfect);
+  $("hint2").textContent= p2.mark==null? "Pick B's ramp mark, then run a speed check." : !p2.chk? "Run a speed check to time A and B." : !p2.pred.done? "Fill in your prediction on the right." : p2.done? "Part 2 complete. Keep experimenting if you like!" : p2.runs.length<3? "Set the pennies, then launch. "+p2.runs.length+" of 3 trials done." : okp? "Record your Perfect Stop on the right." : "Adjust the pennies and launch again.";
+  $("cP").classList.toggle("locked",!p2.chk); ["inSA","inSB","inMN","inPN"].forEach(i=>$(i).disabled=p2.pred.done); $("btnCP").disabled=p2.pred.done;
+  $("cF").classList.toggle("locked",!(p2.pred.done&&p2.runs.length>0)); ["inM2","inPA","inPB","inP0","inVF"].forEach(i=>$(i).disabled=p2.fin.done); $("btnCF").disabled=p2.fin.done;
+  $("codesBtn").disabled=!p1.done;
+  refreshShelf(); renderSteps(); renderLog();
+}
+function pen(d){ if(anim.on) return; p2.n=Math.max(0,Math.min(PENMAX,p2.n+d)); if(rest&&rest.kind==="p2") rest=null; syncUI(); draw(); save(); }
+$("pm5").onclick=()=>pen(-5); $("pm1").onclick=()=>pen(-1); $("pp1").onclick=()=>pen(1); $("pp5").onclick=()=>pen(5);
+function setView(v){ if(v===2&&!p1.done) return; view=v; rest=null; say=null; syncUI(); draw(); save(); }
+$("tab1").onclick=()=>setView(1); $("tab2").onclick=()=>setView(2);
+
+/* ---------- codes + report ---------- */
+function code1(){ const P=Math.round(kA()*v0()*1000); return "HIT-"+(oi+1)+String(P).padStart(3,"0")+"-"+String.fromCharCode(65+((oi*5+P*7+HH())%26)); }
+function code2(){ const n=p2.fin.n, m=p2.mark+1; return "STOP-"+(oi+1)+m+String(n).padStart(2,"0")+"-"+String.fromCharCode(65+((oi*3+m*5+n*7+HH()+11)%26)); }
+let repCode="";
+function showReport(part){
+  const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>'; let h='<table>';
+  $("repWho").innerHTML="<b>"+studentName+"</b> · "+O().name+" · "+new Date().toLocaleDateString();
+  if(part===1){ $("repTitle").innerHTML='Part 1 <span>Initial Collision</span>'; repCode=code1();
+    h+='<tr><th>Masses</th><th></th></tr>'+row("m A",fmt(p1.mA,3)+" kg")+row("m B",fmt(p1.mB,3)+" kg");
+    p1.tr.forEach((t,k)=>{ h+='<tr><th>Trial '+(k+1)+'</th><th></th></tr>'+row("v A initial · v A final · v B final",fmt(t.v1,2)+" · "+fmt(t.v2,2)+" · "+fmt(t.v3,2)+" m/s")+row("p initial · p final",fmt(t.pi,3)+" · "+fmt(t.pf,3)+" kg·m/s"); });
+    h+='</table><p>Copy these onto your lab sheet. The three Preliminary Analysis questions are YOURS to write.</p><p><b>Your Part 1 completion code.</b> Type it into the code box on your Part 1 sheet, and KEEP it. It gets you into Part 2:</p><div class="code">'+repCode+'</div>'; }
+  else { $("repTitle").innerHTML='Part 2 <span>Perfect Stop</span>'; repCode=code2(); const f=p2.fin;
+    h+='<tr><th>Prediction</th><th></th></tr>'+row("Speed of A · speed of B",fmt(p2.pred.sa,2)+" · "+fmt(p2.pred.sb,2)+" m/s")+row("Mass B needs",fmt(p2.pred.m,3)+" kg ("+Math.round(p2.pred.n)+" pennies)");
+    h+='<tr><th>Trials</th><th></th></tr>'+p2.runs.map((r,i)=>row("Trial "+(i+1)+" · "+r.n+" pennies · B = "+fmt(r.mB,4)+" kg", r.perfect?"PERFECT STOP":"kept moving "+(r.vf>0?"right":"left"))).join("");
+    h+='<tr><th>Your Perfect Stop</th><th></th></tr>'+row("m B with pennies",fmt(f.m,4)+" kg")+row("p A · p B",sgn(f.pa)+" · "+sgn(f.pb)+" kg·m/s")+row("p initial (total)",sgn(f.p0)+" kg·m/s")+row("v final",fmt(f.vf,2)+" m/s");
+    h+='</table><p>Copy these onto your lab sheet. The Claim, Evidence and Reasoning are YOURS to write.</p><p><b>Your Part 2 completion code.</b> Type it into the code box on your Part 2 sheet:</p><div class="code">'+repCode+'</div>'; }
+  $("repBody").innerHTML=h; $("goP2").classList.toggle("hide",!(part===1&&!p2.done)); $("ovReport").classList.add("on");
+}
+$("codesBtn").onclick=()=>{ if(!p1.done) return; showReport(p2.done&&view===2?2:1); if(p2.done){ $("repBody").innerHTML+='<p style="margin-top:10px"><b>Both codes:</b> Part 1 <span class="code" style="display:inline-block;padding:4px 10px;font-size:15px">'+code1()+'</span> Part 2 <span class="code" style="display:inline-block;padding:4px 10px;font-size:15px">'+code2()+'</span></p>'; } };
+$("copyCode").onclick=()=>{ (navigator.clipboard?navigator.clipboard.writeText(repCode):Promise.reject()).then(()=>{$("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500);}).catch(()=>{}); };
+$("printRep").onclick=()=>window.print();
+$("closeRep").onclick=()=>$("ovReport").classList.remove("on");
+$("goP2").onclick=()=>{ $("ovReport").classList.remove("on"); setView(2); };
+
+/* ---------- start ---------- */
+function begin(resume){
+  if(!resume){ oi=null; view=1; p1={wA:false,wB:false,mDone:false,mA:0,mB:0,runs:[false,false,false],tr:[{},{},{}],cur:0,done:false}; p2={mark:null,chk:false,pred:{done:false},n:0,runs:[],fin:{done:false},done:false}; }
+  $("ovStart").classList.remove("on"); rest=null; weighNow=null;
+  if(resume){ if(p1.mDone){ $("inMA").value=fmt(p1.mA,3); $("inMB").value=fmt(p1.mB,3); }
+    if(p2.pred.done){ $("inSA").value=fmt(p2.pred.sa,2); $("inSB").value=fmt(p2.pred.sb,2); $("inMN").value=fmt(p2.pred.m,3); $("inPN").value=Math.round(p2.pred.n); }
+    if(p2.fin.done){ const f=p2.fin; $("inM2").value=fmt(f.m,4); $("inPA").value=fmt(f.pa,3); $("inPB").value=fmt(f.pb,3); $("inP0").value=fmt(f.p0,3); $("inVF").value=fmt(f.vf,2); } }
+  syncUI(); draw(); save();
+}
+$("btnStart").onclick=()=>{ const n=$("inName").value.trim(); if(n.split(/\s+/).length<2){ $("startErr").textContent="Please type your first AND last name."; $("startErr").style.color="#C23B52"; return; } studentName=n; begin(false); };
+$("btnSkip").onclick=()=>{ const n=$("inName").value.trim(), c=$("inCode1").value.toUpperCase().replace(/\s+/g,"").replace(/[\u2013\u2014\u2212]/g,"-");
+  const err=m=>{ $("startErr").textContent=m; $("startErr").style.color="#C23B52"; };
+  if(n.split(/\s+/).length<2) return err("Type your first AND last name first, exactly as you did in Part 1.");
+  const m=c.match(/^HIT-?([1-3])(\d{3})-?([A-Z])$/); if(!m) return err("That does not look like a Part 1 code. It looks like HIT-1149-I.");
+  const keepN=studentName, keepO=oi; studentName=n; oi=+m[1]-1;
+  if(code1()!=="HIT-"+m[1]+m[2]+"-"+m[3]){ studentName=keepN; oi=keepO; return err("That code does not match this name. Type your name exactly as you did in Part 1 and check the code."); }
+  const idx=oi; begin(false); oi=idx;
+  p1={wA:true,wB:true,mDone:true,mA:kA(),mB:kB(),runs:[true,true,true],cur:0,done:true,tr:[0,1,2].map(k=>{ const T=trial(k), a=r2(T.v1), b=r2(T.v2), d=r2(T.v3); return {done:true,v1:a,v2:b,v3:d,pi:r3(kA()*a),pf:r3(kA()*b+kB()*d)}; })};
+  $("inMA").value=fmt(p1.mA,3); $("inMB").value=fmt(p1.mB,3); view=2; say="Welcome back! Part 1 is restored from your code. Pick B's ramp mark, then run a speed check.";
+  syncUI(); draw(); save(); };
+$("btnResume").onclick=()=>{ const d=load(); if(!d) return; ({studentName,oi,view,p1,p2}=d); begin(true); };
+$("btnWipe").onclick=()=>{ localStorage.removeItem("collisionLab"); $("btnResume").classList.add("hide"); $("btnWipe").classList.add("hide"); $("inName").value=""; };
+(function init(){ const d=load(); if(d&&d.studentName){ $("btnResume").classList.remove("hide"); $("btnWipe").classList.remove("hide"); $("inName").value=d.studentName; $("btnResume").textContent="Continue as "+d.studentName; } syncUI(); draw(); })();
+setInterval(()=>{ if(!anim.on && !document.hidden && !(weighNow && performance.now()-weighT0<800)) draw(); }, 120);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
+</script>
+</body></html>
