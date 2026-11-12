@@ -40,7 +40,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <label for="rows">One student per line: name, then code</label>
-<textarea id="rows" spellcheck="false" placeholder="Jordan Rivera, MOLE-L-1023-M&#10;Maria Lopez&#9;BOUNCE-04061-K"></textarea>
+<textarea id="rows" spellcheck="false" placeholder="Jordan Rivera, MOLE-L-1023-M&#10;Maria Lopez&#9;BOUNCE-12057-HN"></textarea>
 <p class="small" style="margin-top:8px">Separate the name and the code with a comma or a tab, so you can paste two columns straight from a spreadsheet. The name must match what the student typed in the lab. Capital letters do not matter.</p>
 <button id="go" type="button">Check codes</button><button id="clear" type="button" class="ghost">Clear</button>
 </div>
@@ -52,7 +52,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <details><summary>How the codes work</summary>
-<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. There are 26 possible check letters, so about 1 copied code in 26 can still slip through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
+<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes with one check letter let about 1 copied code in 26 slip through. Codes that end in two check letters (the Bounce Energy Audit Lab) let about 1 in 650 slip through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
 <p>Nothing you type here is saved or sent anywhere. The checking happens on your own device.</p>
 </details>
 </div>
@@ -64,6 +64,8 @@ function up(n){ return (n||"").trim().toUpperCase(); }
 // name hash used by most labs
 function h31(n){ n=up(n); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
 // name hash used by the Mole Delivery Lab
+function h37(n){ n=up(n); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return h; }
+function L2(name,seed){ return L(h37(name)*11+Math.abs(Math.round(Number(seed)||0))*13+3); }
 function hMD(n){ n=up(n); if(!n) return 0; return (n.length+n.charCodeAt(0)+n.charCodeAt(n.length-1))%26; }
 const L=k=>String.fromCharCode(65+(((k%26)+26)%26));
 
@@ -85,9 +87,10 @@ const LABS=[
    const h=h31(name), sum=+m[2]; if(String(h%1000).padStart(3,"0")!==m[1]) return null;
    if(L(h*7+sum*3+7)!==m[3]) return null;
    return "All 7 readings recorded. Readings add up to "+sum+" g."; }},
- {lab:"Bounce Energy Audit Lab", re:/^BOUNCE-(\d{2})(\d{3})-([A-Z])$/, f(m,name){
+ {lab:"Bounce Energy Audit Lab", re:/^BOUNCE-(\d{2})(\d{3})-([A-Z])([A-Z])?$/, f(m,name){
    const p=+m[1], cm=+m[2]; if(p>35) return null;
    if(L(cm*7+p*3+h31(name))!==m[3]) return null;
+   if(!m[4] || L2(name,cm*31+p)!==m[4]) return null;
    return BALLS[Math.floor(p/4)]+" on "+SURF[p%4].toLowerCase()+". Average bounce height read: "+cm+" cm."; }},
  {lab:"Bungee Safety Challenge", re:/^BUNGEE-(\d)(\d{2})(\d{2})-(\d{3})([XSH])([A-Z])$/, f(m,name){
    const ji=+m[1], nl=+m[2], ns=+m[3], low=+m[4]; if(ji>5) return null;

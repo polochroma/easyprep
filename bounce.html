@@ -558,7 +558,7 @@ $("btnAudit").onclick = ()=>{
   const tolF = 0.05;
   const ok = (x,y)=> !isNaN(x) && Math.abs(x-y) <= Math.max(tolF*Math.abs(y), 0.002);
   const r1=ok(a,PEi), r2=ok(b,PEf), r3=ok(c,Eth);
-  if(r1&&r2&&r3){ newtonSay=null; T.PEi=a; T.PEf=b; T.Eth=c; T.audited=true; phase="done"; $("auditMsg").innerHTML='<div class="ok">Audit balanced! PE<sub>i</sub> '+fmt(PEi,3)+' J, PE<sub>f</sub> '+fmt(PEf,3)+' J, E<sub>th</sub> '+fmt(Eth,3)+' J. The missing '+fmt(Eth,3)+' J left the ball-Earth system at the floor.</div>'; $("btnAudit").disabled=true; updateBars(stateAt(sim.tPeak)); renderLedger(); renderSteps(); afterTrial(); save(); return; }
+  if(r1&&r2&&r3){ newtonSay=null; T.PEi=a; T.PEf=b; T.Eth=c; T.audited=true; phase="done"; $("auditMsg").innerHTML='<div class="ok">Audit balanced! PE<sub>i</sub> '+fmt(PEi,3)+' J, PE<sub>f</sub> '+fmt(PEf,3)+' J, E<sub>th</sub> '+fmt(Eth,3)+' J. The missing '+fmt(Eth,3)+' J left the ball-Earth system at the floor.</div>'; $("btnAudit").disabled=true; updateBars(stateAt(sim.tPeak)); renderLedger(); renderSteps(); draw(sim.tPeak,{force:true}); afterTrial(); save(); return; }
   let msg=[]; if(!r1) msg.push("PE<sub>i</sub> is off. Remember PE<sub>i</sub> = m × 9.8 × 1.00 with m in <b>kilograms</b> ("+fmt(m,3)+" kg)."); if(!r2) msg.push("PE<sub>f</sub> is off. Use YOUR recorded h<sub>f</sub> = "+fmt(T.hfRead,2)+" m."); if(!r3) msg.push("E<sub>th</sub> should be PE<sub>i</sub> minus PE<sub>f</sub>.");
   T.auditTries=(T.auditTries||0)+1; newtonSay='Hmm, the books do not balance yet. Check the mass is in kilograms.'; draw(sim.tPeak,{force:true}); $("auditMsg").innerHTML='<div class="bad">'+msg.join("<br>")+'</div>';
 };
@@ -599,12 +599,13 @@ function refreshProg(){ const done=trials.filter(t=>t&&t.audited).length; $("pro
 
 /* ---------- code + report ---------- */
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
 function makeCode(){
   const done=trials.filter(t=>t&&t.audited); const avgHf = done.reduce((a,t)=>a+t.hfRead,0)/done.length;
   const cm = Math.round(avgHf*100);                                // avg bounce height in cm
   const bl = BALLS.findIndex(b=>b.id===done[0].ball), sf = SURF.findIndex(s=>s.id===done[0].surf);
   const payload = bl*4+sf;                                          // 0..35
-  const chk = String.fromCharCode(65 + ((cm*7 + payload*3 + nameHash(studentName)) % 26));
+  const chk = String.fromCharCode(65 + ((cm*7 + payload*3 + nameHash(studentName)) % 26)) + chk2(cm*31 + payload);
   return "BOUNCE-"+String(payload).padStart(2,"0")+String(cm).padStart(3,"0")+"-"+chk;
 }
 $("finishBtn").onclick = ()=>{
