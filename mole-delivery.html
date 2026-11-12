@@ -280,6 +280,7 @@ const SAVE_KEY="moleDeliveryLab.v1";
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({level, studentName, st, cur, t:Date.now()})); }catch(e){} }
 function load(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; return (n.length + n.charCodeAt(0) + n.charCodeAt(n.length-1)) % 26; }
+function nameHash2(n){ n=(n||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return h; }
 const st = {};
 SUBS.forEach(s=>st[s.id]={status:"none",mass:0,tared:false,verifiedMass:null,pct:null,attempts:0,myTarget:null});
 
@@ -657,7 +658,8 @@ if(lockedLevel){ document.querySelectorAll(".lvl").forEach(b=>{ if(b.dataset.lev
 function makeCode(){
   let bits=0; SUBS.forEach((s,i)=>{ if(st[s.id].status==="pass") bits|=(1<<i); });
   const chk = String.fromCharCode(65 + ((bits*7 + 13 + (level==="A"?5:0) + nameHash(studentName)) % 26));
-  return "MOLE-"+level+"-"+String(bits).padStart(4,"0")+"-"+chk;
+  const chk2 = String.fromCharCode(65 + ((nameHash2(studentName)*11 + (bits*31 + (level==="A"?5:0))*13 + 3) % 26));
+  return "MOLE-"+level+"-"+String(bits).padStart(4,"0")+"-"+chk+chk2;
 }
 $("finishBtn").onclick=()=>{
   let passed=0; const rows=SUBS.map((s,i)=>{ const S=st[s.id]; if(S.status==="pass") passed++;

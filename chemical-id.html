@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chemical ID Lab: Virtual Balance</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FDF6EC; --card:#FFFFFF; --line:#F0E3D2; --text:#4A3F5C; --muted:#9A8FB0;
+    --sky:#8FB8FF; --skyD:#5F8FE0; --mint:#9FE6C4; --mintD:#5EC79A; --lav:#C9B6FF; --lavD:#9C84E6;
+    --peach:#FFC9A8; --peachD:#F09A6B; --lemon:#FFE88A; --lemonD:#E8C94A; --pink:#FFB7D5; --pinkD:#F08AB4;
+    --pass:#6FD3A0; --fail:#FF8A9B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Fredoka,Nunito,"Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{background-image:radial-gradient(#F4E7D3 1.2px,transparent 1.2px);background-size:22px 22px}
+  button{font-family:inherit;color:var(--text)}
+  .app{display:flex;flex-direction:column;min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fff;border-bottom:3px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px}
+  header h1 span{color:var(--skyD)}
+  header h1 .m{display:inline-block;width:26px;height:26px;border-radius:50%;background:var(--peach);vertical-align:-5px;margin-right:6px;position:relative}
+  header h1 .m:before,header h1 .m:after{content:"";position:absolute;top:10px;width:4px;height:4px;border-radius:50%;background:#4A3F5C}
+  header h1 .m:before{left:7px}header h1 .m:after{right:7px}
+  .badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;background:var(--lav);color:#fff}
+  .progress{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted)}
+  .dots{display:flex;gap:5px}
+  .dot{width:13px;height:13px;border-radius:50%;background:#EADFCE}
+  .dot.done{background:var(--pass)}
+  .dot.cur{box-shadow:0 0 0 3px var(--sky)}
+
+  main{display:grid;grid-template-columns:262px minmax(0,1fr) 300px;gap:14px;padding:14px;flex:1}
+  @media(max-width:1279px){
+    main{grid-template-columns:1fr 1fr}
+    .bench{grid-column:1/-1;order:-1}
+    .canvaswrap{display:flex;justify-content:center;background:linear-gradient(#EAF4FF,#DDEEFF)}
+    canvas{width:100%;max-width:1100px;height:auto}
+    .shelf{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+  }
+  @media(max-width:640px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;min-width:0;box-shadow:0 6px 0 var(--line)}
+  .card h2{font-size:13px;font-weight:700;color:var(--muted);margin:0 0 10px;letter-spacing:.6px;text-transform:uppercase}
+
+  .shelf{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .bag{position:relative;background:#FFF9F1;border:3px solid #F3E6D4;border-radius:18px;padding:6px 4px 6px;cursor:pointer;transition:transform .12s;text-align:center}
+  .bag:hover{transform:translateY(-3px) rotate(-1.5deg)}
+  .bag.active{border-color:var(--sky);background:#EEF5FF}
+  .bag.onpan{opacity:.45}
+  .bag svg{width:100%;height:auto;display:block}
+  .bag .nm{font-size:13px;font-weight:800;margin-top:2px;line-height:1.1}
+  .bag .fm{font-size:11px;color:var(--muted);font-weight:700}
+  .bag .chk{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--pass);color:#fff;font-size:13px;font-weight:900;display:none;align-items:center;justify-content:center;border:3px solid #fff}
+  .bag.done .chk{display:flex}
+
+  .bench{display:flex;flex-direction:column;gap:12px}
+  .canvaswrap{position:relative;background:linear-gradient(#EAF4FF,#DDEEFF);border-radius:18px;border:3px solid #D8E8FA;overflow:hidden}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .step{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:12px;background:#FFF9F1;border:2px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);transition:all .15s}
+  .step .n{width:20px;height:20px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+  .step.cur{background:#EEF5FF;border-color:var(--sky);color:var(--text);box-shadow:0 3px 0 var(--sky)}
+  .step.cur .n{background:var(--sky)}
+  .step.done{background:#E6F8EF;border-color:var(--pass);color:#3BAF7A}
+  .step.done .n{background:var(--pass)}
+  .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .ctl{border:0;border-radius:16px;padding:12px 6px;font-weight:700;font-size:14px;cursor:pointer;user-select:none;box-shadow:0 6px 0 var(--sh);transition:transform .06s,box-shadow .06s}
+  .ctl:active{transform:translateY(5px);box-shadow:0 1px 0 var(--sh)}
+  .ctl:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 6px 0 var(--sh)}
+  .ctl.tare{background:var(--lav);--sh:var(--lavD)}
+  .ctl.remove{background:var(--peach);--sh:var(--peachD)}
+  .ctl.record{background:var(--lemon);--sh:var(--lemonD)}
+  .ctl small{display:block;font-weight:600;font-size:10px;opacity:.75;margin-top:2px}
+  .ctl.nudge{animation:nudge .5s}
+  @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .hintline{font-size:13px;font-weight:600;color:var(--muted);text-align:center;min-height:18px}
+
+  .task{background:#FFF4B8;color:#4A3F5C;border-radius:6px;padding:12px 14px 10px;position:relative;transform:rotate(-1.2deg);box-shadow:0 8px 16px rgba(74,63,92,.15);font-family:Nunito,Fredoka,sans-serif;font-size:12.5px;line-height:1.45}
+  .task:before{content:"";position:absolute;left:50%;top:-10px;width:70px;height:20px;margin-left:-35px;background:rgba(255,183,213,.65);border-radius:3px;transform:rotate(1.5deg)}
+  .task b{display:block;font-size:14px;margin-bottom:4px}
+  .task ul{margin:6px 0 0;padding-left:18px}
+  .task li{margin:1px 0}
+  .log{margin-top:12px}
+  .log table{width:100%;border-collapse:collapse;font-size:13px;font-weight:600}
+  .log th,.log td{padding:6px 6px;border-bottom:2px solid var(--line);text-align:left}
+  .log th{color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .log td.v{font-family:Nunito,monospace;font-weight:800;text-align:right}
+  .log .empty{color:var(--muted);font-weight:600;font-size:13px;padding:8px 0}
+  .btn3{border:0;border-radius:14px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.14);transition:transform .06s,box-shadow .06s;margin-top:10px}
+  .btn3:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.14)}
+  .btn3.copy{background:var(--sky);color:#fff}
+  .btn3.clear{background:var(--line);margin-left:6px}
+
+  .overlay{position:fixed;inset:0;background:rgba(74,63,92,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal{background:#fff;border:4px solid var(--line);border-radius:26px;padding:24px;max-width:640px;width:100%;box-shadow:0 10px 0 var(--line)}
+  .modal h2{margin:0 0 6px;font-size:26px}
+  .modal p{color:#6B5F80;margin:0 0 14px;font-size:14px;font-weight:600;line-height:1.5}
+  .modal input{width:100%;padding:11px 12px;border-radius:14px;border:3px solid var(--line);background:#FFF9F1;color:var(--text);font-size:17px;font-weight:700;outline:none;font-family:inherit;margin-bottom:14px}
+  .modal .go{background:var(--mint);width:100%;padding:13px;font-size:16px}
+  .hidden{display:none !important}
+.code{font-family:Nunito,monospace;font-weight:800;font-size:22px;letter-spacing:1px;background:#FFF4B8;border:3px dashed #F0DC8A;border-radius:14px;padding:10px 14px;display:inline-block;margin:6px 0}
+.btn3.finish{background:#9FE6C4;color:#2E5E48}
+.btn3.finish:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.codebanner{margin-top:10px;background:#FFF4B8;border:2px dashed #F0DC8A;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600;color:#6B5F80}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="m"></span>CHEMICAL <span>ID</span> LAB</h1>
+    <span class="badge">Virtual balance</span><span id="nameBadge" style="font-weight:700;color:var(--muted);font-size:14px"></span>
+    <div class="progress"><span id="progTxt">0 / 7 recorded</span><div class="dots" id="dots"></div></div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Sealed bags: do not open</h2>
+      <div class="shelf" id="shelf"></div>
+    </section>
+
+    <section class="card bench">
+      <h2>Balance</h2>
+      <div class="canvaswrap"><canvas id="cv" width="640" height="400"></canvas></div>
+      <div class="steps" id="steps">
+        <div class="step" data-s="1"><span class="n">1</span>Tare / zero</div>
+        <div class="step" data-s="2"><span class="n">2</span>Place a bag</div>
+        <div class="step" data-s="3"><span class="n">3</span>Wait for STABLE · record</div>
+      </div>
+      <div class="controls">
+        <button class="ctl tare" id="btnTare">TARE<small>zero whatever is on the pan</small></button>
+        <button class="ctl remove" id="btnRemove">REMOVE BAG<small>clear the pan</small></button>
+        <button class="ctl record" id="btnRecord">RECORD<small>add reading to log</small></button>
+      </div>
+      <div class="hintline" id="hintline">Tare the balance before you start. You can tare again at any time.</div>
+    </section>
+
+    <section class="card">
+      <h2>Task</h2>
+      <div class="task"><b>Identify the powder in each bag.</b>
+        Each bag is labeled with the <b style="display:inline">moles</b> of powder inside. The balance gives you grams. Six of these eight powders are in the bags. What to do about the bag itself is up to you.
+        <ul><li>Calcium carbonate, CaCO₃</li><li>Citric acid, C₆H₈O₇</li><li>Glucose, C₆H₁₂O₆</li><li>Magnesium sulfate, MgSO₄</li><li>Potassium chloride, KCl</li><li>Sodium bicarbonate, NaHCO₃</li><li>Sodium chloride, NaCl</li><li>Sucrose, C₁₂H₂₂O₁₁</li></ul>
+      </div>
+      <div class="log">
+        <h2 style="margin-top:14px">My readings</h2>
+        <table id="logTable"><tr><th>Bag</th><th>Label</th><th style="text-align:right">Reading</th></tr></table>
+        <div class="empty" id="logEmpty">Nothing recorded yet.</div>
+        <button class="btn3 copy" id="copyLog">Copy readings</button><button class="btn3 clear" id="clearLog">Clear</button><button class="btn3 finish" id="finishBtn" disabled>Finish · get my completion code</button>
+        <div class="codebanner" id="codeBanner">Record all <b>7 readings</b> (six bags + the empty bag) to unlock your <b>completion code</b>. Your teacher will ask for it.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="startOverlay">
+  <div class="modal">
+    <h2>Chemical ID Lab</h2>
+    <p>You have <b>six sealed bags</b> of unknown white powders, each labeled with the number of moles inside, plus <b>one empty bag</b>. You also have an electronic balance. Collect the data you need here. Do your thinking in your lab notebook.</p>
+    <p style="background:#FFF4B8;border:2px dashed #F0DC8A;border-radius:12px;padding:8px 12px;font-size:14px"><b>Heads up:</b> record all 7 readings, press <b>Finish</b>, and copy your <b>completion code</b> into your lab notebook. Your teacher will ask for this code.</p>
+    <input id="nameIn" type="text" maxlength="40" placeholder="Your name (first and last)">
+    <button class="btn3 go" id="goBtn">Start weighing</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="repOverlay">
+  <div class="modal">
+    <h2>All 7 readings recorded!</h2>
+    <p id="repWho"></p>
+    <p><b>Your completion code</b>: copy it into the completion code box in your lab notebook:</p>
+    <div class="code" id="repCode">—</div>
+    <p style="font-size:13px;color:var(--muted)">The code is tied to the name you typed. Keep working in your lab notebook: the molar masses and the identity of each powder are still yours to work out.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn3 copy" id="copyCode">Copy code</button>
+      <button class="btn3 clear" id="closeRep">Back to the balance</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+// Bag set. Contents mass = label moles × molar mass.
+const BAG_G = 3.15;                       // mass of one empty zip bag
+const BAGS = [
+  {id:"A", mol:0.54, g:40.26, grain:"crystal", col:"#FFFFFF"},
+  {id:"B", mol:0.085, g:29.10, grain:"crystal", col:"#FFFBEA"},
+  {id:"C", mol:0.31, g:31.03, grain:"powder", col:"#FAF7F2"},
+  {id:"D", mol:0.15, g:28.82, grain:"crystal", col:"#F3FFFA"},
+  {id:"E", mol:0.46, g:38.64, grain:"powder", col:"#FFFBF5"},
+  {id:"F", mol:0.225, g:27.09, grain:"crystal", col:"#F7F7F7"},
+  {id:"EMPTY", mol:null, g:0, grain:"none", col:"#FFFFFF"},
+];
+const DRIFT = 0.08;                       // balance reads this before it's zeroed
+
+let studentName="", zeroed=false, tareOff=0, onPan=null, face="idle", t=0, settle=0, displayed=DRIFT, log=[];
+const recorded=new Set();
+const SAVE_KEY="chemicalID.v1";
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({studentName, log, recorded:[...recorded]})); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
+
+const $=id=>document.getElementById(id);
+const shelf=$("shelf"), dots=$("dots"), hintline=$("hintline");
+const btnTare=$("btnTare"), btnRemove=$("btnRemove"), btnRecord=$("btnRecord");
+
+function bagSVG(b){
+  const empty=b.id==="EMPTY"; const pat=[];
+  let seed=b.id.charCodeAt(0)*7; const rnd=()=>{seed=(seed*9301+49297)%233280; return seed/233280;};
+  if(!empty) for(let i=0;i<30;i++){
+    const x=(16+rnd()*48).toFixed(1), y=(52+rnd()*30).toFixed(1);
+    if(b.grain==="powder") pat.push(`<circle cx="${x}" cy="${y}" r="${(0.8+rnd()*1.1).toFixed(1)}" fill="#0002"/>`);
+    else pat.push(`<rect x="${x}" y="${y}" width="${(1.5+rnd()*2.5).toFixed(1)}" height="${(1.5+rnd()*2.5).toFixed(1)}" rx=".6" fill="#0002" transform="rotate(${(rnd()*90).toFixed(0)} ${x} ${y})"/>`);
+  }
+  return `<svg viewBox="0 0 80 96" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 14 h60 v70 q0 8 -8 8 h-44 q-8 0 -8 -8 z" fill="rgba(255,255,255,.75)" stroke="#D9CFE8" stroke-width="2"/>
+    <rect x="10" y="10" width="60" height="9" rx="3" fill="#C9B6FF"/><rect x="12" y="13" width="56" height="2" fill="#9C84E6" opacity=".7"/>
+    ${empty?``:`<path d="M13 50 h54 v33 q0 6 -6 6 h-42 q-6 0 -6 -6 z" fill="${b.col}" stroke="#0001"/>`}
+    ${pat.join("")}
+    <rect x="16" y="24" width="48" height="20" rx="5" fill="#fff" stroke="#9C84E6" stroke-width="2"/>
+    <text x="40" y="32.5" font-size="7.5" font-weight="700" text-anchor="middle" font-family="Nunito, Arial" fill="#9A8FB0">${empty?"SPARE":"BAG "+b.id}</text>
+    <text x="40" y="41.5" font-size="${empty?"7":"9"}" font-weight="800" text-anchor="middle" font-family="Nunito, Arial" fill="#4A3F5C">${empty?"empty bag":molLabel(b)}</text>
+    <circle cx="31" cy="62" r="2.2" fill="#4A3F5C"/><circle cx="49" cy="62" r="2.2" fill="#4A3F5C"/>
+    <circle cx="31.8" cy="61.2" r=".7" fill="#fff"/><circle cx="49.8" cy="61.2" r=".7" fill="#fff"/>
+    <path d="M36 65 q4 3.5 8 0" stroke="#4A3F5C" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <circle cx="24" cy="64.5" r="2.6" fill="#FFB7D5" opacity=".7"/><circle cx="56" cy="64.5" r="2.6" fill="#FFB7D5" opacity=".7"/>
+    <rect x="14" y="22" width="10" height="64" rx="5" fill="#fff" opacity=".35"/>
+  </svg>`;
+}
+function molLabel(b){ return b.id==="EMPTY" ? "empty bag" : b.mol.toFixed(3)+" mol"; }
+BAGS.forEach(b=>{
+  const d=document.createElement("div"); d.className="bag"; d.dataset.id=b.id;
+  d.innerHTML=bagSVG(b)+`<div class="nm">${b.id==="EMPTY"?"Empty bag":"Bag "+b.id}</div><div class="fm">${b.id==="EMPTY"?"for zeroing":"label: "+molLabel(b)}</div><div class="chk">✓</div>`;
+  d.addEventListener("click",()=>place(b.id));
+  shelf.appendChild(d);
+  const dot=document.createElement("div"); dot.className="dot"; dot.dataset.id=b.id; dots.appendChild(dot);
+});
+
+function refresh(){
+  document.querySelectorAll(".bag").forEach(el=>{ el.classList.toggle("onpan",onPan===el.dataset.id); el.classList.toggle("active",onPan===el.dataset.id); el.classList.toggle("done",recorded.has(el.dataset.id)); });
+  document.querySelectorAll(".dot").forEach(d=>{ d.className="dot"+(recorded.has(d.dataset.id)?" done":"")+(onPan===d.dataset.id?" cur":""); });
+  $("progTxt").textContent=recorded.size+" / "+BAGS.length+" recorded";
+  const n = !zeroed?1 : !onPan?2 : 3;
+  document.querySelectorAll(".step").forEach(el=>{ const k=+el.dataset.s; el.classList.toggle("cur",k===n); el.classList.toggle("done",k<n); });
+  btnTare.disabled = false;
+  btnRemove.disabled = !onPan;
+  btnRecord.disabled = !onPan || settle>0;
+  const all=recorded.size>=BAGS.length; $("finishBtn").disabled=!all;
+  $("codeBanner").innerHTML = all ? "All 7 readings in. Press <b>Finish</b> to get your <b>completion code</b>, then copy it into your lab notebook." : "Record all <b>7 readings</b> (six bags + the empty bag) to unlock your <b>completion code</b>. Your teacher will ask for it. ("+recorded.size+"/"+BAGS.length+")";
+  renderLog(); save();
+}
+function place(id){
+  if(!zeroed){ hintline.textContent="⚠ Tare the balance first (press TARE)."; btnTare.classList.remove("nudge"); void btnTare.offsetWidth; btnTare.classList.add("nudge"); return; }
+  onPan=id; settle=0.9; face="pour";
+  hintline.textContent = id==="EMPTY" ? "Empty bag on the pan. Wait for STABLE, then record." : `Bag ${id} on the pan. Wait for STABLE, then record.`;
+  refresh();
+}
+btnTare.onclick=()=>{
+  tareOff=rawLoad(); zeroed=true; settle=0.4; face="idle";
+  hintline.textContent = onPan ? `Tared with ${onPan==="EMPTY"?"the empty bag":"Bag "+onPan} on the pan: the balance now reads 0.00 and will subtract it from whatever comes next.`
+                               : "Zeroed to 0.00 g. Now place a bag on the pan.";
+  refresh(); };
+btnRemove.onclick=()=>{ onPan=null; settle=0.4; face="idle"; hintline.textContent="Pan is clear. Place the next bag."; refresh(); };
+btnRecord.onclick=()=>{
+  if(!onPan||settle>0) return;
+  const b=BAGS.find(x=>x.id===onPan); const r=actual();
+  log=log.filter(e=>e.id!==onPan); log.push({id:onPan,label:molLabel(b),g:r.toFixed(2)}); recorded.add(onPan);
+  face="happy"; hintline.textContent=`Recorded ${r.toFixed(2)} g for ${onPan==="EMPTY"?"the empty bag":"Bag "+onPan}.`; refresh();
+};
+function renderLog(){
+  const tb=$("logTable"); [...tb.querySelectorAll("tr.r")].forEach(r=>r.remove());
+  const order=BAGS.map(b=>b.id);
+  log.slice().sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id)).forEach(e=>{
+    const tr=document.createElement("tr"); tr.className="r";
+    tr.innerHTML=`<td>${e.id==="EMPTY"?"Empty bag":"Bag "+e.id}</td><td>${e.label}</td><td class="v">${e.g} g</td>`; tb.appendChild(tr);
+  });
+  $("logEmpty").style.display = log.length?"none":"block";
+}
+$("copyLog").onclick=()=>{
+  const txt=(studentName?studentName+"\n":"")+"Bag\tLabel\tBalance reading (g)\n"+log.map(e=>`${e.id==="EMPTY"?"Empty bag":"Bag "+e.id}\t${e.label}\t${e.g}`).join("\n")+(recorded.size>=BAGS.length?"\nCompletion code\t"+makeCode():"");
+  if(navigator.clipboard) navigator.clipboard.writeText(txt); $("copyLog").textContent="Copied ✓"; setTimeout(()=>$("copyLog").textContent="Copy readings",1500);
+};
+$("clearLog").onclick=()=>{ log=[]; recorded.clear(); refresh(); };
+
+// ---------- completion code ----------
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
+function makeCode(){
+  const h=nameHash(studentName);
+  const sum=Math.round(log.reduce((a,e)=>a+parseFloat(e.g),0));          // total grams recorded (encodes how they tared)
+  const chk=String.fromCharCode(65+((h*7+sum*3+log.length)%26))+chk2(sum*31+log.length);
+  return "CHEMID-"+String(h%1000).padStart(3,"0")+"-"+String(sum).padStart(3,"0")+"-"+chk;
+}
+$("finishBtn").onclick=()=>{
+  if(recorded.size<BAGS.length) return;
+  const code=makeCode();
+  $("repWho").innerHTML="<b>"+studentName+"</b> · "+BAGS.length+" readings · "+new Date().toLocaleDateString();
+  $("repCode").textContent=code; $("repOverlay").classList.remove("hidden"); face="happy";
+};
+$("copyCode").onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText($("repCode").textContent); $("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500); };
+$("closeRep").onclick=()=>$("repOverlay").classList.add("hidden");
+
+function rawLoad(){ const b=onPan?BAGS.find(x=>x.id===onPan):null; return (b?BAG_G+b.g:0) + DRIFT; }
+function actual(){ return rawLoad()-tareOff; }
+
+// ---------- canvas ----------
+const cv=$("cv"), ctx=cv.getContext("2d");
+const LW=640, LH=400; let scaleK=1;
+function fitCanvas(){ const dpr=Math.max(1,window.devicePixelRatio||1), w=cv.clientWidth||LW; const bw=Math.round(w*dpr), bh=Math.round(w*dpr*LH/LW); if(cv.width!==bw||cv.height!==bh){ cv.width=bw; cv.height=bh; } scaleK=bw/LW; }
+fitCanvas(); window.addEventListener("resize",fitCanvas); if(window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv.parentElement);
+let lastT=performance.now(), bagY=0;
+function tick(now){
+  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; t+=dt;
+  const was=settle>0; settle=Math.max(0,settle-dt);
+  if(was && settle<=0){ if(face==="pour") face="idle"; refresh(); }
+  const a=actual(); const jitter = settle>0 ? (Math.random()-.5)*0.08*Math.min(1,settle*2) : 0;
+  displayed += (a-displayed)*Math.min(1,dt*10) + jitter; if(settle<=0) displayed += (a-displayed)*0.6;
+  bagY += ((onPan?0:-60)-bagY)*Math.min(1,dt*8);
+  draw(); requestAnimationFrame(tick);
+}
+function rr(x,y,w,h,r,c){ ctx.fillStyle=c; ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); }
+function drawFace(cx,cy){
+  const blink=(Math.sin(t*1.3)>0.985)?0.15:1; ctx.fillStyle="#4A3F5C";
+  if(face==="happy"){ ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=3; ctx.lineCap="round"; [[cx-16,cy],[cx+16,cy]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y+2,6,Math.PI*1.1,Math.PI*1.9); ctx.stroke(); }); ctx.beginPath(); ctx.arc(cx,cy+8,8,0.15*Math.PI,0.85*Math.PI); ctx.stroke(); ctx.fillStyle="rgba(255,183,213,.8)"; ctx.beginPath(); ctx.arc(cx-28,cy+9,5,0,Math.PI*2); ctx.arc(cx+28,cy+9,5,0,Math.PI*2); ctx.fill(); return; }
+  ctx.beginPath(); ctx.ellipse(cx-16,cy,4.5,5*blink,0,0,Math.PI*2); ctx.ellipse(cx+16,cy,4.5,5*blink,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(cx-14.5,cy-1.5,1.3,0,Math.PI*2); ctx.arc(cx+17.5,cy-1.5,1.3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#4A3F5C"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.beginPath();
+  if(face==="pour"){ ctx.ellipse(cx,cy+11,4,5,0,0,Math.PI*2); ctx.stroke(); } else { ctx.arc(cx,cy+7,6,0.2*Math.PI,0.8*Math.PI); ctx.stroke(); }
+  ctx.fillStyle="rgba(255,183,213,.7)"; ctx.beginPath(); ctx.arc(cx-28,cy+9,5,0,Math.PI*2); ctx.arc(cx+28,cy+9,5,0,Math.PI*2); ctx.fill();
+}
+function flask(x,y,sc,col){ ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc); ctx.fillStyle="rgba(255,255,255,.75)"; ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-6,-30); ctx.lineTo(6,-30); ctx.lineTo(6,-12); ctx.lineTo(18,18); ctx.quadraticCurveTo(0,24,-18,18); ctx.lineTo(-6,-12); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(-12,4); ctx.lineTo(12,4); ctx.lineTo(18,18); ctx.quadraticCurveTo(0,24,-18,18); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function bottle(x,y,sc,col,lid){ ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc); rr(-12,-22,24,44,8,"rgba(255,255,255,.8)"); ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(-12,-22,24,44,8); ctx.stroke(); rr(-12,-2,24,24,8,col); rr(-9,-30,18,10,4,lid); ctx.restore(); }
+function plant(x,y){ rr(x-16,y-18,32,22,6,"#FFC9A8"); rr(x-19,y-22,38,8,4,"#F09A6B"); ctx.fillStyle="#9FE6C4"; [[-14,-30,9],[0,-40,12],[14,-30,9],[-6,-24,7],[7,-24,7]].forEach(([dx,dy,r])=>{ ctx.beginPath(); ctx.ellipse(x+dx,y+dy,r,r*1.3,0,0,Math.PI*2); ctx.fill(); }); }
+function drawBag(b,y){
+  // zip bag sitting on the pan
+  const x=320, top=150+y, bot=258+y;
+  ctx.fillStyle="rgba(74,63,92,.10)"; ctx.beginPath(); ctx.ellipse(x,bot-2,66,6,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.78)"; ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(x-62,top); ctx.lineTo(x+62,top); ctx.lineTo(x+62,bot-10); ctx.quadraticCurveTo(x+62,bot,x+52,bot); ctx.lineTo(x-52,bot); ctx.quadraticCurveTo(x-62,bot,x-62,bot-10); ctx.closePath(); ctx.fill(); ctx.stroke();
+  rr(x-62,top-6,124,11,4,"#C9B6FF");
+  if(b.id!=="EMPTY"){
+    ctx.fillStyle=b.col; ctx.beginPath(); ctx.moveTo(x-58,top+52); ctx.quadraticCurveTo(x,top+30,x+58,top+52); ctx.lineTo(x+58,bot-10); ctx.quadraticCurveTo(x+58,bot-3,x+50,bot-3); ctx.lineTo(x-50,bot-3); ctx.quadraticCurveTo(x-58,bot-3,x-58,bot-10); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle="rgba(74,63,92,.12)"; ctx.lineWidth=1.5; ctx.stroke();
+  } else { ctx.fillStyle="rgba(201,182,255,.25)"; ctx.font="700 12px Fredoka, Arial"; ctx.textAlign="center"; ctx.fillStyle="#9A8FB0"; ctx.fillText("(empty)",x,top+70); ctx.textAlign="left"; }
+  // label sticker
+  rr(x-44,top+12,88,30,7,"#fff"); ctx.strokeStyle="#9C84E6"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(x-44,top+12,88,30,7); ctx.stroke();
+  ctx.textAlign="center"; ctx.fillStyle="#9A8FB0"; ctx.font="700 9px Nunito, Arial"; ctx.fillText(b.id==="EMPTY"?"SPARE":"BAG "+b.id, x, top+24);
+  ctx.fillStyle="#4A3F5C"; ctx.font="800 13px Nunito, Arial"; ctx.fillText(b.id==="EMPTY"?"empty bag":molLabel(b), x, top+37); ctx.textAlign="left";
+  // highlight
+  ctx.fillStyle="rgba(255,255,255,.4)"; ctx.beginPath(); ctx.roundRect(x-56,top+8,12,bot-top-20,6); ctx.fill();
+}
+function draw(){
+  const W=LW,H=LH; ctx.setTransform(scaleK,0,0,scaleK,0,0); ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#EAF4FF"; ctx.fillRect(0,0,W,300);
+  ctx.strokeStyle="rgba(143,184,255,.18)"; ctx.lineWidth=1.5;
+  for(let x=0;x<=W;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,300); ctx.stroke(); }
+  for(let y=0;y<=300;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  rr(30,28,150,112,14,"#C9B6FF"); rr(38,36,134,96,10,"#BFE3FF");
+  ctx.fillStyle="rgba(255,255,255,.8)"; [[62,70,16],[80,62,20],[100,70,14],[128,96,12],[142,90,16],[158,98,11]].forEach(([x,y,r])=>{ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle="#FFE88A"; ctx.beginPath(); ctx.arc(150,56,12,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#C9B6FF"; ctx.fillRect(102,36,6,96); ctx.fillRect(38,80,134,6);
+  rr(430,120,190,10,4,"#E8D8C4"); rr(436,130,8,10,2,"#D9C5AC"); rr(606,130,8,10,2,"#D9C5AC");
+  flask(462,100,1,"#FFB7D5"); bottle(506,98,1,"#9FE6C4","#5EC79A"); flask(548,100,.85,"#8FB8FF"); bottle(588,100,.9,"#FFE88A","#E8C94A");
+  rr(0,300,W,H-300,0,"#D8EDE2"); ctx.fillStyle="#C4E3D2"; ctx.fillRect(0,300,W,12); ctx.fillStyle="#B7D9C6"; ctx.fillRect(0,386,W,14);
+  plant(72,372);
+  // periodic table card on the bench
+  ctx.save(); ctx.translate(585,352); ctx.rotate(.1); rr(-30,-38,60,74,6,"#FFC9A8"); rr(-25,-32,50,62,4,"#fff");
+  const cols=["#8FB8FF","#9FE6C4","#FFE88A","#FFB7D5","#C9B6FF"]; for(let r=0;r<5;r++) for(let c=0;c<6;c++){ ctx.fillStyle=cols[(r+c)%5]; ctx.fillRect(-22+c*7.5,-29+r*9,6,7); } ctx.restore();
+  ctx.strokeStyle="#9A8FB0"; ctx.lineWidth=4; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(488,350); ctx.quadraticCurveTo(520,350,536,372); ctx.quadraticCurveTo(548,386,560,384); ctx.stroke();
+  ctx.fillStyle="rgba(74,63,92,.10)"; ctx.beginPath(); ctx.ellipse(320,378,190,10,0,0,Math.PI*2); ctx.fill();
+  rr(150,286,340,86,26,"#C9B6FF"); ctx.fillStyle="#DCCFFF"; ctx.beginPath(); ctx.roundRect(160,292,320,26,14); ctx.fill();
+  rr(176,366,38,12,6,"#A08BE0"); rr(426,366,38,12,6,"#A08BE0");
+  rr(372,326,22,12,6,"#FFB7D5"); rr(372,342,22,12,6,"#9FE6C4"); ctx.fillStyle="#6B5F80"; ctx.font="700 8px Fredoka, Arial"; ctx.fillText("ON",377,335); ctx.fillText("TARE",373,351);
+  ctx.fillStyle="#A08BE0"; ctx.beginPath(); ctx.roundRect(308,262,24,30,8); ctx.fill();
+  ctx.fillStyle="rgba(74,63,92,.12)"; ctx.beginPath(); ctx.ellipse(320,272,104,16,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#E8E0FF"; ctx.beginPath(); ctx.ellipse(320,266,100,15,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#F6F2FF"; ctx.beginPath(); ctx.ellipse(320,262,100,14,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.ellipse(320,262,84,10,0,0,Math.PI*2); ctx.stroke();
+  const b=onPan?BAGS.find(x=>x.id===onPan):null;
+  if(b || bagY>-58){ const bb=b||BAGS.find(x=>x.id===(lastBag||"A")); if(b) lastBag=b.id; ctx.save(); ctx.globalAlpha=Math.max(0,1+bagY/60); drawBag(bb,bagY); ctx.restore(); }
+  // LCD
+  rr(174,322,176,42,12,"#3D3356"); rr(178,326,168,34,10,"#2E2745");
+  const unstable=settle>0;
+  ctx.fillStyle=unstable?"#FFD36B":"#9FE6C4"; ctx.font="700 28px Nunito, 'Courier New', monospace"; ctx.textAlign="right";
+  ctx.fillText(displayed.toFixed(2),312,353); ctx.font="700 14px Fredoka, Arial"; ctx.fillText("g",338,352); ctx.textAlign="left";
+  drawFace(430,340);
+  rr(166,297,150,16,6,"#FFFFFF"); ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=1.2; ctx.beginPath(); ctx.roundRect(166,297,150,16,6); ctx.stroke();
+  ctx.fillStyle="#8A7FA3"; ctx.font="700 9px Fredoka, Arial"; ctx.textAlign="center"; ctx.fillText("LAB-SCALE  ·  MAX 500 g  ·  d = 0.01 g",241,308.5); ctx.textAlign="left";
+  const pillCol=unstable?"#FFD36B":"#9FE6C4", pillTxt=unstable?"SETTLING":"STABLE";
+  rr(396,297,78,16,8,"#FFFFFF"); ctx.strokeStyle=pillCol; ctx.lineWidth=1.6; ctx.beginPath(); ctx.roundRect(396,297,78,16,8); ctx.stroke();
+  ctx.fillStyle=pillCol; ctx.beginPath(); ctx.arc(406,305,3.5,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#6B5F80"; ctx.font="700 9px Fredoka, Arial"; ctx.fillText(pillTxt,414,308.5);
+  // speech bubble
+  let say = !zeroed ? "Tare me first (press TARE)." : !onPan ? (Math.abs(actual())>0.005 ? "Pan is clear: I'm still tared to the last thing." : "Zeroed. Put a bag on my pan.") : unstable ? "Hold on, settling…" : recorded.has(onPan) ? "Recorded! Swap in the next bag." : "Stable. Record this reading.";
+  ctx.font="700 12px Fredoka, Arial"; const tw=ctx.measureText(say).width, bw=tw+24, bx=Math.min(W-bw-10,452), by=236;
+  ctx.fillStyle="rgba(74,63,92,.08)"; ctx.beginPath(); ctx.roundRect(bx+2,by+3,bw,30,12); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.strokeStyle="#D9CFE8"; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(bx,by,bw,30,12); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(bx+18,by+29); ctx.lineTo(bx+6,by+44); ctx.lineTo(bx+34,by+29); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle="#D9CFE8"; ctx.beginPath(); ctx.moveTo(bx+18,by+30); ctx.lineTo(bx+6,by+44); ctx.lineTo(bx+34,by+30); ctx.stroke();
+  ctx.fillStyle="#4A3F5C"; ctx.fillText(say,bx+12,by+19);
+}
+let lastBag=null;
+requestAnimationFrame(tick);
+
+// ---------- start ----------
+(function(){
+  const sv=load();
+  if(sv&&sv.studentName){ $("nameIn").value=sv.studentName; log=sv.log||[]; (sv.recorded||[]).forEach(id=>recorded.add(id)); }
+  $("goBtn").onclick=()=>{
+    const nm=$("nameIn").value.trim(); if(!nm){ $("nameIn").focus(); $("nameIn").style.borderColor="var(--fail)"; $("nameIn").placeholder="Type your name first"; return; }
+    studentName=nm; $("nameBadge").textContent="· "+nm; $("startOverlay").classList.add("hidden"); refresh();
+  };
+})();
+refresh();
+})();
+</script>
+</body>
+</html>
