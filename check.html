@@ -52,7 +52,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <details><summary>How the codes work</summary>
-<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab and the Recoil and Propulsion Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
+<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab, the Recoil and Propulsion Lab and the Impulse Drop Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
 <p>Nothing you type here is saved or sent anywhere. The checking happens on your own device.</p>
 </details>
 </div>
@@ -73,7 +73,7 @@ const MD_SUBS=["Aluminum","Copper","Zinc","Table salt","Baking soda","Epsom salt
 const BALLS=["Ping pong","Racquetball","Golf ball","Tennis ball","Baseball","Softball","Volleyball","Soccer ball","Basketball"];
 const SURF=["Gym floor","Concrete","Carpet","Grass"];
 const JUMPERS=["Astro Ann","Captain Zed","Dino Dan","Robo-Rex","Princess Pip","Buddy Bear"];
-const OBJS=[["Egg",58],["Water balloon",100],["Cherry tomato",15],["Grape",6],["Cracker",10],["Play-Doh ball",40]];
+const OBJS=[["Egg",58],["Water balloon",100],["Cherry tomato",15],["Grape",6],["Cracker",10],["Modeling clay ball",40]];
 const RIDERS=["Ana","Ben","Cam"], ROLLERS=["Skateboard","Office chair","Wooden dolly"], HEAVY=["Medicine ball","Loaded backpack"];
 const COBJ=["Toy cars","Soup cans","Coasters"];
 
@@ -103,9 +103,10 @@ const LABS=[
    if(!m[7]) return "OLD"; if(L2(name,ji*1000+nl*100+ns*10+low)!==m[7]) return null;
    const o=m[5]==="X"?"The jumper hit the floor.":m[5]==="S"?"Stopped within 5 cm of the floor (target met).":"Stopped more than 5 cm above the floor.";
    return JUMPERS[ji]+", cord of "+nl+" long and "+ns+" short bands. Lowest point read: "+low+" cm above the floor. "+o; }},
- {lab:"Impulse Drop Lab", re:/^DROP-(\d)(\d{3})-([A-Z])$/, f(m,name){
+ {lab:"Impulse Drop Lab", re:/^DROP-(\d)(\d{3})-([A-Z])([A-Z])?$/, f(m,name){
    const oi=+m[1]-1, p3=+m[2]; if(oi<0||oi>5) return null;
    if(L(oi*5+p3*7+h31(name))!==m[3]) return null;
+   if(!m[4]) return "OLD"; if(L2(name,oi*1009+p3)!==m[4]) return null;
    return OBJS[oi][0]+" ("+OBJS[oi][1]+" g). Momentum just before impact: "+(p3/1000).toFixed(3)+" kg·m/s."; }},
  {lab:"Recoil and Propulsion Lab", re:/^RECOIL-(\d)(\d)(\d)-(\d{3})-([A-Z])([A-Z])?$/, f(m,name){
    const r=+m[1]-1, o=+m[2]-1, hv=+m[3]-1, p=+m[4]; if(r<0||r>2||o<0||o>2||hv<0||hv>1) return null;

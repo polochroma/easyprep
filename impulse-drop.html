@@ -299,7 +299,7 @@ const OBJS = [
   {id:"tom", name:"Cherry tomato", g:15,  d:0.0030, Fb:12, brk:"split open",  col:"#FF8A8A", edge:"#D94B5A"},
   {id:"grp", name:"Grape",         g:6,   d:0.0025, Fb:6,  brk:"split open",  col:"#B79AEC", edge:"#7E5BC2"},
   {id:"crk", name:"Cracker",       g:10,  d:0.0015, Fb:10, brk:"crumbled",    col:"#F2D7A0", edge:"#D4AE62"},
-  {id:"doh", name:"Play-Doh ball", g:40,  d:0.0090, Fb:10, brk:"flattened",   col:"#FFB7D5", edge:"#F08AB4"},
+  {id:"doh", name:"Modeling clay ball", g:40,  d:0.0090, Fb:10, brk:"flattened",   col:"#FFB7D5", edge:"#F08AB4"},
 ];
 const SURFS = [
   {id:"hard",   name:"Concrete",  thick:0.03},
@@ -326,6 +326,7 @@ const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
 const fms = s => { const ms=s*1000; return (ms<10? fmt(ms,1) : String(Math.round(ms)))+" ms"; };
 const fN = F => (F<10? fmt(F,1) : String(Math.round(F)))+" N";
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
 function obj(){ return OBJS.find(o=>o.id===objId); }
 function soft(){ return 1 + ((nameHash(studentName)*7)%17 - 8)/100; }      // each student's pillow is a little different
 function give(surf,m){ return surf==="hard"?0 : surf==="carpet"?0.006 : surf==="pillow"?(0.05+0.25*m)*soft() : 0.30; }
@@ -762,7 +763,7 @@ function syncUI(){
 /* ---------- code + report ---------- */
 function makeCode(){
   const oi=OBJS.findIndex(o=>o.id===objId), o=OBJS[oi], p3=Math.round(o.g/1000*Math.sqrt(2*G*H)*1000);
-  const chk=String.fromCharCode(65 + ((oi*5 + p3*7 + nameHash(studentName)) % 26));
+  const chk=String.fromCharCode(65 + ((oi*5 + p3*7 + nameHash(studentName)) % 26)) + chk2(oi*1009 + p3);
   return "DROP-"+(oi+1)+String(p3).padStart(3,"0")+"-"+chk;
 }
 $("finishBtn").onclick=()=>{
