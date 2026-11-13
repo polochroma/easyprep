@@ -287,7 +287,7 @@ canvas{display:block;width:100%;height:auto}
     <p class="hint" id="startErr"></p>
     <details class="skip" id="skipBox"><summary>Already finished Part 1? Jump to Part 2 with your code</summary>
       <p class="hint" style="margin:6px 0 8px">Type your name above EXACTLY as you did in Part 1, then your Part 1 code. No need to redo anything.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="name" id="inCode1" placeholder="HIT-1149-I" autocomplete="off" style="flex:1 1 150px;text-transform:uppercase"><button class="btn lemon" id="btnSkip">Go to Part 2 →</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="name" id="inCode1" placeholder="HIT-1149-IK" autocomplete="off" style="flex:1 1 150px;text-transform:uppercase"><button class="btn lemon" id="btnSkip">Go to Part 2 →</button></div>
     </details>
     <div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm hide" id="btnResume">Continue where I left off</button><button class="btn ghost sm hide" id="btnWipe">Start over</button></div>
   </div>
@@ -328,6 +328,7 @@ const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
 const sgn = (x,d=3) => (x>=0?"+":"−")+fmt(Math.abs(x),d);
 const r2 = x => Math.round(x*100)/100, r3 = x => Math.round(x*1000)/1000;
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
 const HH = () => nameHash(studentName), O = () => OBJS[oi];
 const gA = () => O().gA + (HH()*7)%9-4, gB = () => O().gB + (HH()*3)%7-3;
 const kA = () => gA()/1000, kB = () => gB()/1000;
@@ -617,8 +618,8 @@ function setView(v){ if(v===2&&!p1.done) return; view=v; rest=null; say=null; sy
 $("tab1").onclick=()=>setView(1); $("tab2").onclick=()=>setView(2);
 
 /* ---------- codes + report ---------- */
-function code1(){ const P=Math.round(kA()*v0()*1000); return "HIT-"+(oi+1)+String(P).padStart(3,"0")+"-"+String.fromCharCode(65+((oi*5+P*7+HH())%26)); }
-function code2(){ const n=p2.fin.n, m=p2.mark+1; return "STOP-"+(oi+1)+m+String(n).padStart(2,"0")+"-"+String.fromCharCode(65+((oi*3+m*5+n*7+HH()+11)%26)); }
+function code1(){ const P=Math.round(kA()*v0()*1000); return "HIT-"+(oi+1)+String(P).padStart(3,"0")+"-"+String.fromCharCode(65+((oi*5+P*7+HH())%26))+chk2(oi*1009+P); }
+function code2(){ const n=p2.fin.n, m=p2.mark+1; return "STOP-"+(oi+1)+m+String(n).padStart(2,"0")+"-"+String.fromCharCode(65+((oi*3+m*5+n*7+HH()+11)%26))+chk2(oi*101+m*17+n+500); }
 let repCode="";
 function showReport(part){
   const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>'; let h='<table>';
@@ -653,7 +654,8 @@ $("btnStart").onclick=()=>{ const n=$("inName").value.trim(); if(n.split(/\s+/).
 $("btnSkip").onclick=()=>{ const n=$("inName").value.trim(), c=$("inCode1").value.toUpperCase().replace(/\s+/g,"").replace(/[\u2013\u2014\u2212]/g,"-");
   const err=m=>{ $("startErr").textContent=m; $("startErr").style.color="#C23B52"; };
   if(n.split(/\s+/).length<2) return err("Type your first AND last name first, exactly as you did in Part 1.");
-  const m=c.match(/^HIT-?([1-3])(\d{3})-?([A-Z])$/); if(!m) return err("That does not look like a Part 1 code. It looks like HIT-1149-I.");
+  const m=c.match(/^HIT-?([1-3])(\d{3})-?([A-Z]{1,2})$/); if(!m) return err("That does not look like a Part 1 code. It looks like HIT-1149-IK.");
+  if(m[3].length<2) return err("That is an older code with one check letter. Run Part 1 again to get a current code.");
   const keepN=studentName, keepO=oi; studentName=n; oi=+m[1]-1;
   if(code1()!=="HIT-"+m[1]+m[2]+"-"+m[3]){ studentName=keepN; oi=keepO; return err("That code does not match this name. Type your name exactly as you did in Part 1 and check the code."); }
   const idx=oi; begin(false); oi=idx;
