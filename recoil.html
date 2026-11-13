@@ -316,6 +316,7 @@ const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
 const sgn = (x,d=2) => (x>=0?"+":"−")+fmt(Math.abs(x),d);
 const r1 = x => Math.round(x*10)/10, r2 = x => Math.round(x*100)/100;
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
 const HH = () => nameHash(studentName);
 const R = () => RIDERS[sel.r], O = () => ROLLERS[sel.o], HV = () => HEAVY[sel.h];
 const ready = () => sel.r!=null && sel.o!=null && sel.h!=null;
@@ -652,7 +653,7 @@ function syncUI(){
 /* ---------- code + report ---------- */
 function makeCode(){
   const keep=playground; playground=false; const p=Math.round(mH()*v2t()*10); playground=keep;
-  const k=String.fromCharCode(65+((sel.r*3+sel.o*5+sel.h*7+p*7+HH())%26));
+  const k=String.fromCharCode(65+((sel.r*3+sel.o*5+sel.h*7+p*7+HH())%26))+chk2(sel.r*100+sel.o*10+sel.h+p*1000);
   return "RECOIL-"+(sel.r+1)+(sel.o+1)+(sel.h+1)+"-"+String(p).padStart(3,"0")+"-"+k;
 }
 $("finishBtn").onclick=()=>{
