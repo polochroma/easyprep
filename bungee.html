@@ -294,6 +294,7 @@ let hookeSay = null;
 const $ = id => document.getElementById(id);
 const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
 function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
+function chk2(s){ const n=(studentName||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return String.fromCharCode(65+((h*11+Math.abs(Math.round(Number(s)||0))*13+3)%26)); }
 // each student's rubber bands are their own batch: stiffness jittered +/-10 % by name
 function kBand(type){ const h=nameHash(studentName); const j = 1 + ((h*(type==="long"?7:13))%21 - 10)/100; return BANDS[type].k * j; }
 function jumper(){ return JUMPERS.find(j=>j.id===jumperId); }
@@ -712,7 +713,7 @@ function renderLedger(){
 function makeCode(){
   const ji=JUMPERS.findIndex(j=>j.id===jumperId); const o = drop.crash? "X" : (lowRead<=5? "S" : "H");
   const body = ji+String(nLong).padStart(2,"0")+String(nShort).padStart(2,"0")+"-"+String(lowRead).padStart(3,"0")+o;
-  const chk=String.fromCharCode(65 + ((ji*5+nLong*7+nShort*11+lowRead*3+nameHash(studentName)) % 26));
+  const chk=String.fromCharCode(65 + ((ji*5+nLong*7+nShort*11+lowRead*3+nameHash(studentName)) % 26)) + chk2(ji*1000+nLong*100+nShort*10+lowRead);
   return "BUNGEE-"+body+chk;
 }
 $("finishBtn").onclick=()=>{

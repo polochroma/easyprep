@@ -279,7 +279,7 @@ let level = null, cur = null, face = "idle", faceT = 0, studentName = "";
 const SAVE_KEY="moleDeliveryLab.v1";
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({level, studentName, st, cur, t:Date.now()})); }catch(e){} }
 function load(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
-function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; return (n.length + n.charCodeAt(0) + n.charCodeAt(n.length-1)) % 26; }
+function nameHash(n){ n=(n||"").trim().toUpperCase(); if(!n) return 0; let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%9973; return h; }
 function nameHash2(n){ n=(n||"").trim().toUpperCase(); let h=7; for(let i=0;i<n.length;i++) h=(h*37+n.charCodeAt(i))%10007; return h; }
 const st = {};
 SUBS.forEach(s=>st[s.id]={status:"none",mass:0,tared:false,verifiedMass:null,pct:null,attempts:0,myTarget:null});

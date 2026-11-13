@@ -284,6 +284,7 @@ let scrubT = 0;
 
 const $ = id => document.getElementById(id);
 const fmt = (x,d=3) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+const kg = x => fmt(x, x<0.01 ? 4 : 3);   // a 2.7 g ball must read 0.0027 kg, not 0.003
 
 function save(){ try{ localStorage.setItem("bounceLab", JSON.stringify({studentName,level,ballId,surfId,trial,trials,setupLocked,phase:(phase==="recording"?"ready":phase),sim,scrubT,playground})); }catch(e){} }
 function load(){ try{ return JSON.parse(localStorage.getItem("bounceLab")||"null"); }catch(e){ return null; } }
@@ -559,7 +560,7 @@ $("btnAudit").onclick = ()=>{
   const ok = (x,y)=> !isNaN(x) && Math.abs(x-y) <= Math.max(tolF*Math.abs(y), 0.002);
   const r1=ok(a,PEi), r2=ok(b,PEf), r3=ok(c,Eth);
   if(r1&&r2&&r3){ newtonSay=null; T.PEi=a; T.PEf=b; T.Eth=c; T.audited=true; phase="done"; $("auditMsg").innerHTML='<div class="ok">Audit balanced! PE<sub>i</sub> '+fmt(PEi,3)+' J, PE<sub>f</sub> '+fmt(PEf,3)+' J, E<sub>th</sub> '+fmt(Eth,3)+' J. The missing '+fmt(Eth,3)+' J left the ball-Earth system at the floor.</div>'; $("btnAudit").disabled=true; updateBars(stateAt(sim.tPeak)); renderLedger(); renderSteps(); draw(sim.tPeak,{force:true}); afterTrial(); save(); return; }
-  let msg=[]; if(!r1) msg.push("PE<sub>i</sub> is off. Remember PE<sub>i</sub> = m × 9.8 × 1.00 with m in <b>kilograms</b> ("+fmt(m,3)+" kg)."); if(!r2) msg.push("PE<sub>f</sub> is off. Use YOUR recorded h<sub>f</sub> = "+fmt(T.hfRead,2)+" m."); if(!r3) msg.push("E<sub>th</sub> should be PE<sub>i</sub> minus PE<sub>f</sub>.");
+  let msg=[]; if(!r1) msg.push("PE<sub>i</sub> is off. Remember PE<sub>i</sub> = m × 9.8 × 1.00 with m in <b>kilograms</b> ("+kg(m)+" kg)."); if(!r2) msg.push("PE<sub>f</sub> is off. Use YOUR recorded h<sub>f</sub> = "+fmt(T.hfRead,2)+" m."); if(!r3) msg.push("E<sub>th</sub> should be PE<sub>i</sub> minus PE<sub>f</sub>.");
   T.auditTries=(T.auditTries||0)+1; newtonSay='Hmm, the books do not balance yet. Check the mass is in kilograms.'; draw(sim.tPeak,{force:true}); $("auditMsg").innerHTML='<div class="bad">'+msg.join("<br>")+'</div>';
 };
 function afterTrial(){
@@ -573,7 +574,7 @@ function afterTrial(){
 function ballSVG(b){ const extra = b.lines?'<path d="M4 23h38M23 4v38" stroke="'+b.edge+'" stroke-width="2.5" fill="none"/>':(b.seam||b.stitch?'<path d="M10 8c8 8 8 22 0 30M36 8c-8 8-8 22 0 30" stroke="'+(b.seam?'#fff':b.edge)+'" stroke-width="3" fill="none"/>':(b.hex?'<circle cx="23" cy="23" r="5" fill="#3D3356"/><circle cx="12" cy="15" r="3.5" fill="#3D3356"/><circle cx="34" cy="15" r="3.5" fill="#3D3356"/><circle cx="12" cy="32" r="3.5" fill="#3D3356"/><circle cx="34" cy="32" r="3.5" fill="#3D3356"/>':'')); return '<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="'+b.col+'" stroke="'+b.edge+'" stroke-width="3"/>'+extra+'<circle cx="15" cy="14" r="4" fill="#fff" opacity=".6"/></svg>'; }
 function refreshShelf(){
   $("shelf").innerHTML = BALLS.map(b=>'<div class="ball'+(b.id===ballId?' active':'')+(setupLocked?' locked':'')+'" data-id="'+b.id+'">'+ballSVG(b)+'<div class="nm">'+b.name+'</div><div class="fm">'+b.g+' g</div></div>').join("");
-  [...$("shelf").children].forEach(el=> el.onclick = ()=>{ ballId = el.dataset.id; const b=BALLS.find(x=>x.id===ballId); $("tagBall").textContent=b.name; $("tagMass").textContent=b.g+" g = "+fmt(b.g/1000,3)+" kg"; $("ballNote").innerHTML="<b>"+b.name+"</b>: typical mass <b>"+b.g+" g</b> = <b>"+fmt(b.g/1000,3)+" kg</b>. Write it on your lab sheet."; if(phase==="setup") phase="ready"; refreshShelf(); renderSteps(); draw(0); save(); });
+  [...$("shelf").children].forEach(el=> el.onclick = ()=>{ ballId = el.dataset.id; const b=BALLS.find(x=>x.id===ballId); $("tagBall").textContent=b.name; $("tagMass").textContent=b.g+" g = "+kg(b.g/1000)+" kg"; $("ballNote").innerHTML="<b>"+b.name+"</b>: typical mass <b>"+b.g+" g</b> = <b>"+kg(b.g/1000)+" kg</b>. Write it on your lab sheet."; if(phase==="setup") phase="ready"; refreshShelf(); renderSteps(); draw(0); save(); });
   $("surf").innerHTML = SURF.map(s=>'<button class="'+(s.id===surfId?'active':'')+(setupLocked?' locked':'')+'" data-id="'+s.id+'"><i style="background:'+s.col+'"></i>'+s.name+'</button>').join("");
   [...$("surf").children].forEach(el=> el.onclick = ()=>{ surfId = el.dataset.id; refreshShelf(); draw(0); save(); });
 }
@@ -612,7 +613,7 @@ $("finishBtn").onclick = ()=>{
   const done=trials.filter(t=>t&&t.audited); if(done.length<NTRIALS) return;
   const avg=k=>done.reduce((a,t)=>a+t[k],0)/done.length;
   $("repWho").innerHTML="<b>"+studentName+"</b> · drop height 1.00 m · g = 9.8 m/s² · "+new Date().toLocaleDateString();
-  $("repBody").innerHTML='<table><tr><th>Trial</th><th>Ball</th><th>m (kg)</th><th>h<sub>f</sub> (m)</th><th>PE<sub>i</sub> (J)</th><th>PE<sub>f</sub> (J)</th><th>E<sub>th</sub> (J)</th></tr>'+done.map((t,i)=>'<tr><td>'+(i+1)+'</td><td>'+BALLS.find(b=>b.id===t.ball).name+'</td><td>'+fmt(t.mass/1000,3)+'</td><td>'+fmt(t.hfRead,2)+'</td><td>'+fmt(t.PEi,3)+'</td><td>'+fmt(t.PEf,3)+'</td><td>'+fmt(t.Eth,3)+'</td></tr>').join("")+'<tr><td colspan="3"><b>Average</b></td><td>'+fmt(avg("hfRead"),2)+'</td><td>'+fmt(avg("PEi"),3)+'</td><td>'+fmt(avg("PEf"),3)+'</td><td>'+fmt(avg("Eth"),3)+'</td></tr></table><p>Copy these averages into the ledger on your lab sheet. The percent lost, where the energy went, and whether energy was conserved are YOUR questions to answer on the sheet.</p>';
+  $("repBody").innerHTML='<table><tr><th>Trial</th><th>Ball</th><th>m (kg)</th><th>h<sub>f</sub> (m)</th><th>PE<sub>i</sub> (J)</th><th>PE<sub>f</sub> (J)</th><th>E<sub>th</sub> (J)</th></tr>'+done.map((t,i)=>'<tr><td>'+(i+1)+'</td><td>'+BALLS.find(b=>b.id===t.ball).name+'</td><td>'+kg(t.mass/1000)+'</td><td>'+fmt(t.hfRead,2)+'</td><td>'+fmt(t.PEi,3)+'</td><td>'+fmt(t.PEf,3)+'</td><td>'+fmt(t.Eth,3)+'</td></tr>').join("")+'<tr><td colspan="3"><b>Average</b></td><td>'+fmt(avg("hfRead"),2)+'</td><td>'+fmt(avg("PEi"),3)+'</td><td>'+fmt(avg("PEf"),3)+'</td><td>'+fmt(avg("Eth"),3)+'</td></tr></table><p>Copy these averages into the ledger on your lab sheet. The percent lost, where the energy went, and whether energy was conserved are YOUR questions to answer on the sheet.</p>';
   $("repCode").textContent = makeCode(); $("playBtn").style.display=""; $("ovReport").classList.add("on"); save();
 };
 $("copyCode").onclick = ()=>{ const c=$("repCode").textContent; (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{$("copyCode").textContent="Copied ✓"; setTimeout(()=>$("copyCode").textContent="Copy code",1500);}).catch(()=>{ const r=document.createRange(); r.selectNodeContents($("repCode")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); };
@@ -626,7 +627,7 @@ function begin(resume){
   $("ovStart").classList.remove("on");
   $("lvlPill").textContent = playground ? "Playground" : "Virtual Lab"; $("floorCard").style.display = playground ? "" : "none";
   $("tagTrial").textContent = playground ? "Playground" : "Trial "+(trial+1);
-  if(ballId){ const b=BALLS.find(x=>x.id===ballId); $("tagBall").textContent=b.name; $("tagMass").textContent=b.g+" g = "+fmt(b.g/1000,3)+" kg"; }
+  if(ballId){ const b=BALLS.find(x=>x.id===ballId); $("tagBall").textContent=b.name; $("tagMass").textContent=b.g+" g = "+kg(b.g/1000)+" kg"; }
   refreshShelf(); renderSteps(); renderLedger(); draw(0);
   if(resume){ // restore the mid-trial UI
     const T=trials[trial];

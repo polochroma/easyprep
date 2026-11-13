@@ -254,6 +254,7 @@ function place(id){
   refresh();
 }
 btnTare.onclick=()=>{
+  if(onPan && onPan!=="EMPTY"){ hintline.textContent="A sealed bag is on the pan. Take it off first. You can tare the empty pan, or tare with the empty bag on it."; return; }
   tareOff=rawLoad(); zeroed=true; settle=0.4; face="idle";
   hintline.textContent = onPan ? `Tared with ${onPan==="EMPTY"?"the empty bag":"Bag "+onPan} on the pan: the balance now reads 0.00 and will subtract it from whatever comes next.`
                                : "Zeroed to 0.00 g. Now place a bag on the pan.";

@@ -40,7 +40,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <label for="rows">One student per line: name, then code</label>
-<textarea id="rows" spellcheck="false" placeholder="Jordan Rivera, MOLE-L-1023-UX&#10;Maria Lopez&#9;BOUNCE-12057-HN"></textarea>
+<textarea id="rows" spellcheck="false" placeholder="Jordan Rivera, MOLE-L-1023-DX&#10;Maria Lopez&#9;BOUNCE-12057-HN"></textarea>
 <p class="small" style="margin-top:8px">Separate the name and the code with a comma or a tab, so you can paste two columns straight from a spreadsheet. The name must match what the student typed in the lab. Capital letters do not matter.</p>
 <button id="go" type="button">Check codes</button><button id="clear" type="button" class="ghost">Clear</button>
 </div>
@@ -52,7 +52,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <details><summary>How the codes work</summary>
-<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes with one check letter let about 1 copied code in 26 slip through. Codes that end in two check letters (the Bounce Energy Audit Lab and the Chemical ID Lab) let about 1 in 650 slip through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
+<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID and the Bungee Safety Challenge end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
 <p>Nothing you type here is saved or sent anywhere. The checking happens on your own device.</p>
 </details>
 </div>
@@ -80,10 +80,10 @@ const COBJ=["Toy cars","Soup cans","Coasters"];
 const LABS=[
  {lab:"Mole Delivery Lab", re:/^MOLE-([LA])-(\d{4})-([A-Z])([A-Z])?$/, f(m,name){
    const bits=+m[2], lv=(m[1]==="A"?5:0); if(bits>1023) return null;
-   if(L(bits*7+13+lv+hMD(name))!==m[3]) return null;
-   if(!m[4] || L2(name,bits*31+lv)!==m[4]) return null;
+   if(L(bits*7+13+lv+h31(name))!==m[3]) return null;
+   if(!m[4]) return "OLD"; if(L2(name,bits*31+lv)!==m[4]) return null;
    const done=MD_SUBS.filter((s,i)=>bits&(1<<i)), miss=MD_SUBS.filter((s,i)=>!(bits&(1<<i)));
-   return (m[1]==="A"?"Advanced":"On-Level")+" level. "+done.length+" of 10 orders delivered."+(miss.length&&miss.length<10?" Not delivered: "+miss.join(", ")+".":""); }},
+   return (m[1]==="A"?"Advanced":"On-Level")+". "+done.length+" of 10 orders delivered."+(miss.length&&miss.length<10?" Not delivered: "+miss.join(", ")+".":""); }},
  {lab:"Molar Relationships Lab", re:/^MOLE-(\d{3})-(\d{3})-([A-Z])$/, f(m,name){
    const h=h31(name), sum=+m[2]; if(String(h%1000).padStart(3,"0")!==m[1]) return null;
    if(L(h*7+sum*3+7)!==m[3]) return null;
@@ -95,11 +95,12 @@ const LABS=[
  {lab:"Bounce Energy Audit Lab", re:/^BOUNCE-(\d{2})(\d{3})-([A-Z])([A-Z])?$/, f(m,name){
    const p=+m[1], cm=+m[2]; if(p>35) return null;
    if(L(cm*7+p*3+h31(name))!==m[3]) return null;
-   if(!m[4] || L2(name,cm*31+p)!==m[4]) return null;
+   if(!m[4]) return "OLD"; if(L2(name,cm*31+p)!==m[4]) return null;
    return BALLS[Math.floor(p/4)]+" on "+SURF[p%4].toLowerCase()+". Average bounce height read: "+cm+" cm."; }},
- {lab:"Bungee Safety Challenge", re:/^BUNGEE-(\d)(\d{2})(\d{2})-(\d{3})([XSH])([A-Z])$/, f(m,name){
+ {lab:"Bungee Safety Challenge", re:/^BUNGEE-(\d)(\d{2})(\d{2})-(\d{3})([XSH])([A-Z])([A-Z])?$/, f(m,name){
    const ji=+m[1], nl=+m[2], ns=+m[3], low=+m[4]; if(ji>5) return null;
    if(L(ji*5+nl*7+ns*11+low*3+h31(name))!==m[6]) return null;
+   if(!m[7]) return "OLD"; if(L2(name,ji*1000+nl*100+ns*10+low)!==m[7]) return null;
    const o=m[5]==="X"?"The jumper hit the floor.":m[5]==="S"?"Stopped within 5 cm of the floor (target met).":"Stopped more than 5 cm above the floor.";
    return JUMPERS[ji]+", cord of "+nl+" long and "+ns+" short bands. Lowest point read: "+low+" cm above the floor. "+o; }},
  {lab:"Impulse Drop Lab", re:/^DROP-(\d)(\d{3})-([A-Z])$/, f(m,name){
@@ -122,7 +123,7 @@ function check(name,code){
   const c=(code||"").trim().toUpperCase().replace(/\s+/g,"");
   if(!name.trim()) return {ok:false,lab:"",msg:"No name on this line."};
   if(!c) return {ok:false,lab:"",msg:"No code on this line."};
-  for(const lab of LABS){ const m=c.match(lab.re); if(m){ const d=lab.f(m,name); return d?{ok:true,lab:lab.lab,msg:d}:{ok:false,lab:lab.lab,msg:"The code does not match this name. Check the spelling of the name, then the code."}; } }
+  for(const lab of LABS){ const m=c.match(lab.re); if(m){ const d=lab.f(m,name); if(d==="OLD") return {ok:false,lab:lab.lab,msg:"This is an older code with one check letter. Current codes for this lab end in two letters. Have the student run the lab again from your link."}; return d?{ok:true,lab:lab.lab,msg:d}:{ok:false,lab:lab.lab,msg:"The code does not match this name. Check the spelling of the name, then the code."}; } }
   return {ok:false,lab:"",msg:"This does not look like an EasyPrep STEM code."};
 }
 window.easyprepCheck=check;
