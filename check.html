@@ -52,7 +52,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <details><summary>How the codes work</summary>
-<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab, the Recoil and Propulsion Lab, the Impulse Drop Lab and the Atom Counter Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
+<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab, the Recoil and Propulsion Lab, the Impulse Drop Lab and the Balancing Equations Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
 <p>Nothing you type here is saved or sent anywhere. The checking happens on your own device.</p>
 </details>
 </div>
@@ -121,7 +121,7 @@ const LABS=[
    const oi=+m[1]-1, mk=+m[2], n=+m[3]; if(L(oi*3+mk*5+n*7+h31(name)+11)!==m[4]) return null;
    if(!m[5]) return "OLD"; if(L2(name,oi*101+mk*17+n+500)!==m[5]) return null;
    return COBJ[oi]+", ramp mark "+mk+", "+n+" pennies added for the Perfect Stop."; }},
- {lab:"Atom Counter Lab", re:/^ATOM-([LA])(\d{2})(\d)-([A-Z])([A-Z])$/, f(m,name){
+ {lab:"Balancing Equations Lab", re:/^ATOM-([LA])(\d{2})(\d)-([A-Z])([A-Z])$/, f(m,name){
    const adv=m[1]==="A"?5:0, cc=+m[2], ft=+m[3]; if(cc<8||ft>8||cc<16-ft) return null;
    if(L(adv+cc*7+ft*3+h31(name)+9)!==m[4] || L2(name,cc*31+ft*7+adv+400)!==m[5]) return null;
    return (adv?"Advanced":"On-Level")+": all 8 reactions balanced. Pressed Check "+cc+(cc===99?" or more":"")+" times. Balanced on the first check: "+ft+" of 8."; }},
