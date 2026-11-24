@@ -127,13 +127,15 @@ const LABS=[
    return (adv?"Advanced":"On-Level")+": all 8 reactions balanced. Pressed Check "+cc+(cc===99?" or more":"")+" times. Balanced on the first check: "+ft+" of 8."; }},
 ];
 
-function check(name,code){
+function check1(name,code){
   const c=(code||"").trim().toUpperCase().replace(/\s+/g,"");
   if(!name.trim()) return {ok:false,lab:"",msg:"No name on this line."};
   if(!c) return {ok:false,lab:"",msg:"No code on this line."};
   for(const lab of LABS){ const m=c.match(lab.re); if(m){ const d=lab.f(m,name); if(d==="OLD") return {ok:false,lab:lab.lab,msg:"This is an older code with one check letter. Current codes for this lab end in two letters. Have the student run the lab again from your link."}; return d?{ok:true,lab:lab.lab,msg:d}:{ok:false,lab:lab.lab,msg:"The code does not match this name. Check the spelling of the name, then the code."}; } }
   return {ok:false,lab:"",msg:"This does not look like an EasyPrep STEM code."};
 }
+// Extra spaces inside a pasted name (roster exports) should not fail an honest code: try the name as typed, then with single spaces.
+function check(name,code){ name=name||""; const r=check1(name,code); if(r.ok) return r; const n2=name.replace(/\s+/g," ").trim(); if(n2!==name.trim()){ const r2=check1(n2,code); if(r2.ok) return r2; } return r; }
 window.easyprepCheck=check;
 function esc(s){ return String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch])); }
 function run(){
