@@ -52,7 +52,7 @@ summary{cursor:pointer;font-weight:700}
 
 <div class="card">
 <details><summary>How the codes work</summary>
-<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab, the Recoil and Propulsion Lab, the Impulse Drop Lab and the Balancing Equations Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
+<p style="margin-top:10px">A code packs three things: which lab it came from, a few facts about the student's run (for example which orders were delivered, or the reading they recorded), and a check letter worked out from those facts and the student's name. If a student copies a classmate's code, or changes a digit, the check letter almost always stops matching and this page marks it <span class="no">Not valid</span>. Codes from Mole Delivery, Bounce Energy Audit, Chemical ID, the Bungee Safety Challenge, the Collision Lab, the Recoil and Propulsion Lab, the Impulse Drop Lab, the Balancing Equations Lab and the Rocket Boat Lab end in two check letters, so about 1 copied code in 650 slips through. Labs that still use one check letter let about 1 in 26 through. The last column shows what the code says the student did, which you can compare with their lab sheet.</p>
 <p>Nothing you type here is saved or sent anywhere. The checking happens on your own device.</p>
 </details>
 </div>
@@ -125,6 +125,10 @@ const LABS=[
    const adv=m[1]==="A"?5:0, cc=+m[2], ft=+m[3]; if(cc<8||ft>8||cc<16-ft) return null;
    if(L(adv+cc*7+ft*3+h31(name)+9)!==m[4] || L2(name,cc*31+ft*7+adv+400)!==m[5]) return null;
    return (adv?"Advanced":"On-Level")+": all 8 reactions balanced. Pressed Check "+cc+(cc===99?" or more":"")+" times. Balanced on the first check: "+ft+" of 8."; }},
+ {lab:"Rocket Boat", re:/^BOAT-(\d{2})(\d{2})([1-9])([1-9])-([A-Z])([A-Z])$/, f(m,name){
+   const k=+m[1], j=+m[2], a=+m[3], b=+m[4]; if(k!==h31(name)%21||j!==h37(name)%16) return null;
+   if(L(k*7+j*3+a*11+b*5+h31(name)+5)!==m[5] || L2(name,k*1009+j*31+a*7+b)!==m[6]) return null;
+   return "Landed Part 2 zone ("+(1.80+0.12*k).toFixed(2)+" m) on attempt "+a+(a>=9?"+":"")+" and Part 3 zone ("+(2.40+0.12*j).toFixed(2)+" m) with nothing left over on attempt "+b+(b>=9?"+":"")+"."; }},
 ];
 
 function check1(name,code){
